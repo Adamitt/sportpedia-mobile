@@ -3,7 +3,7 @@
 ---
 
 ### **Pekan 1: API CRUD Fitur Utama**
-- **Cika (Beranda & Navigasi):**
+- **Chevinka (Beranda & Navigasi):**
   - API testimoni (list, create, update, delete)
   - API kategori populer/what’s hot (read)
 - **Freya (Pustaka Olahraga):**
