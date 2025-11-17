@@ -1,7 +1,5 @@
 # sportpedia-mobile
 
-Tentu! Berikut pembagian tugas 5 pekan ke depan untuk seluruh anggota, dengan beban API CRUD dibagi ke dua pekan pertama, lalu integrasi, sinkronisasi, dan validasi hingga aplikasi Sportpedia versi mobile siap:
-
 ---
 
 ### **Pekan 1: API CRUD Fitur Utama**
@@ -104,5 +102,3 @@ Tentu! Berikut pembagian tugas 5 pekan ke depan untuk seluruh anggota, dengan be
   - Presentasi/demo ke dosen/klien.
 
 ---
-
-Jika ingin breakdown checklist mingguan per fitur atau template Gantt chart, saya bisa buatkan juga!
