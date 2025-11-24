@@ -1,10 +1,9 @@
-# 🏅 SportPedia  
+# 🏅 SportPedia Mobile
 ### _“Gerbang Olahragamu. Langkah Pertama Menuju Arena.”_
 
 ---
 
 ## 👥 Anggota Kelompok
-
 | NPM | Nama Lengkap |
 |------|-----------------------------|
 | 2406437376 | Chevinka Queen Cilia Sidabutar |
@@ -15,225 +14,114 @@
 | 2406436000 | Ahmad Haikal Najmuddin |
 
 ---
-## 📖 Deskripsi Aplikasi Web: "SportPedia"
 
+## 📖 Deskripsi Aplikasi
 **Nama Aplikasi:** SportPedia  
-**Tagline:** “Gerbang Olahragamu. Langkah Pertama Menuju Arena.”
+**Tagline:** “Gerbang Olahragamu. Langkah Pertama Menuju Arena.”  
+SportPedia adalah platform edukasi olahraga berbasis web dan mobile yang menjadi “teman pertama” bagi siapa pun yang ingin mencoba cabang olahraga baru. Aplikasi ini menyajikan panduan teori, video tutorial, referensi perlengkapan, forum komunitas, dan profil progres agar pengguna dapat melangkah ke arena dengan percaya diri.
 
-## 🧩 1. Cerita Aplikasi  
-Banyak orang memiliki keinginan terpendam untuk mencoba olahraga baru, entah itu bulu tangkis, tenis, panahan, yoga, atau bahkan wall climbing. Namun, keinginan ini seringkali terhenti oleh satu pertanyaan besar yang bercabang: 
-**"Harus mulai dari mana?"**
+---
 
-Ketidaktahuan ini menciptakan penghalang yang besar. Mereka tidak tahu aturan dasarnya, teknik paling fundamental, atau istilah-istilah umum yang digunakan. Lebih jauh lagi, kebingungan terbesar seringkali datang saat memilih peralatan. Apa saja yang wajib dibeli? Merek apa yang bagus untuk pemula? Berapa anggaran yang harus disiapkan agar tidak salah beli?  
-Rasa takut terlihat bodoh atau salah langkah membuat banyak orang akhirnya mengurungkan niatnya.
+## 🧩 Cerita & Manfaat
+- Banyak calon atlet/penggiat bingung harus mulai dari mana; SportPedia meruntuhkan hambatan itu dengan panduan satu pintu.  
+- Manfaat utama:
+  - 🧭 Mengurangi hambatan informasi.
+  - 🧠 Membangun fondasi pengetahuan kuat.
+  - 💰 Mencegah salah beli perlengkapan.
+  - 💪 Meningkatkan kepercayaan diri pemula.
+  - 🏃 Mendorong gaya hidup aktif.
 
-**SportPedia** lahir untuk meruntuhkan penghalang tersebut.  
-SportPedia adalah sebuah platform web edukasi yang didesain khusus sebagai *"teman pertama"* bagi siapa pun yang ingin terjun ke dunia olahraga baru. Kami percaya bahwa setiap orang berhak merasakan kegembiraan berolahraga tanpa harus merasa terintimidasi.  
+---
 
-Platform ini berfungsi sebagai panduan lengkap satu atap (*one-stop guide*), menyediakan semua informasi esensial yang dibutuhkan seorang pemula, mulai dari pemahaman teori hingga persiapan perlengkapan pertama mereka.
+## ⚙️ Fitur-Fitur Utama
+1. **Beranda & Navigasi** – Hero, search bar, kategori populer, navigasi cepat, testimoni.
+2. **Pustaka Olahraga** – Daftar olahraga, filter/sortir, detail lengkap, bookmark, admin page.
+3. **Galeri Video** – Katalog video, filter tingkat kesulitan, komentar & rating.
+4. **Gear Guide** – Checklist peralatan, deskripsi alat, rentang harga, rekomendasi merek, link e-commerce.
+5. **Forum & Komunitas** – Topik diskusi, balasan, like, highlight komunitas.
+6. **Profil & Perjalanan** – Profil pengguna, riwayat aktivitas, pengaturan akun.
 
-Dengan **SportPedia**, memulai olahraga baru bukan lagi sebuah lompatan ke dalam ketidaktahuan, melainkan sebuah langkah pertama yang percaya diri dan terinformasi.
+---
 
-## 💡 2. Kebermanfaatan Aplikasi  
+## 🎯 Target Pengguna
+- Individu dewasa & profesional muda yang mencari hobi baru.
+- Mahasiswa/pelajar yang ingin ikut UKM olahraga.
+- Orang tua yang ingin mengenalkan olahraga ke anak.
+- Siapa pun yang penasaran tapi ragu memulai.
 
-SportPedia memberikan manfaat nyata bagi pengguna dengan mengatasi titik-titik kebingungan utama yang dihadapi pemula:
+---
 
-- 🧭 **Mengurangi Hambatan Informasi:**  
-  Pengguna tidak perlu lagi membuka puluhan tab browser untuk mencari informasi terpisah-pisah. Semua yang dibutuhkan dari aturan, teknik dasar, hingga panduan alat tersedia di satu tempat yang terstruktur dan mudah dipahami.
-
-- 🧠 **Membangun Fondasi Pengetahuan yang Kuat:**  
-  Dengan memahami teori dan taktik dasar sebelum memulai, pengguna dapat belajar lebih cepat di lapangan. Ini membantu mereka menikmati proses belajar dan tidak mudah menyerah.
-
-- 💰 **Mencegah Kesalahan Pembelian Alat:**  
-  Fitur panduan perlengkapan dengan rekomendasi merek dan rentang harga membantu pengguna membuat keputusan pembelian yang cerdas sesuai anggaran dan kebutuhan. Ini menghemat uang dan mencegah kekecewaan karena membeli peralatan yang salah atau tidak perlu.
-
-- 💪 **Meningkatkan Kepercayaan Diri:**  
-  Dengan bekal pengetahuan teori, visualisasi dari video tutorial, dan persiapan alat yang matang, pengguna akan merasa jauh lebih percaya diri saat pertama kali melangkah ke lapangan, gym, atau arena.
-
-- 🏃 **Mendorong Gaya Hidup Aktif:**  
-  Dengan mempermudah akses untuk memulai, SportPedia secara tidak langsung mendorong lebih banyak orang untuk mencoba dan menekuni hobi olahraga, yang pada akhirnya berkontribusi pada gaya hidup yang lebih sehat.
-
-## ⚙️ 3. Fitur-Fitur Utama  
-
-Platform **SportPedia** dilengkapi dengan beberapa fitur inti berikut:
-
-### 🏠 **1. Modul Beranda & Navigasi Utama**
-**Fitur-Fitur:**
-- Hero Section: menampilkan tagline *“Satu langkah ke arena, Seribu peluang beraksi"*  
-- Search Bar: memudahkan pengguna mencari olahraga dan alat secara langsung.  
-- Kategori Populer: menampilkan laman yang paling sering diakses.  
-- Navigasi Cepat: tombol menuju Pustaka, Video, Gear Guide, Forum, dan Profil. 
-- Testimoni: menampilkan testimoni pengguna setelah menggunakan website ini.   
-
-### 📚 **2. Modul Pustaka Olahraga (Sport Library)**
-**Deskripsi:**  
-Modul ini berfungsi sebagai pusat informasi utama yang berisi kumpulan pengetahuan dasar mengenai berbagai cabang olahraga. Setiap olahraga memiliki halaman detail yang mencakup sejarah, aturan, dan teknik dasar.  
-
-**Fitur-Fitur:**
-- Daftar Olahraga: ditampilkan dalam bentuk kartu interaktif.  
-- Filter dan Sortir: berdasarkan kategori olahraga, tingkat kesulitan, atau jenis aktivitas (indoor/outdoor).  
-- Halaman Detail: berisi sejarah singkat, aturan dasar, dan teknik fundamental.
-- Bookmark Olahraga: pengguna dapat menyimpan olahraga yang diminati/dipelajari.  
-- Admin page : bisa mengedit dan mengubah tampilan dari pustaka olahraga
-
-### 🎥 **3. Modul Galeri Video Tutorial**
-**Deskripsi:**  
-Modul ini menyediakan video pembelajaran untuk setiap cabang olahraga. Video dikurasi dan disusun berdasarkan tingkat kesulitan agar mudah dipahami oleh pemula.  
-
-**Fitur-Fitur:**
-- Katalog Video: kumpulan video tutorial dengan thumbnail dan deskripsi singkat serta bisa mengarah ke aplikasi Youtube.  
-- Filter Video: berdasarkan olahraga atau tingkat kesulitan.   
-- Komentar & Rating: memberi ruang pengguna untuk memberi umpan balik pada video.  
-
-### 🧤 **4. Modul Direktori Perlengkapan (Gear Guide)**
-**Deskripsi:**  
-Modul ini membantu pengguna dalam memilih perlengkapan olahraga yang tepat. Berisi daftar alat wajib, penjelasan fungsi, dan rekomendasi produk sesuai tingkat kemampuan dan anggaran pengguna.  
-
-**Fitur-Fitur:**
-- Checklist Peralatan: daftar alat wajib dan opsional untuk tiap olahraga.  
-- Deskripsi Alat: menjelaskan fungsi dan cara penggunaan alat.  
-- Rentang Harga: estimasi harga pasar untuk tiap kategori alat.  
-- Rekomendasi Merek: membandingkan merek sesuai kebutuhan pemula, menengah, dan lanjutan.  
-- Tautan ke E-commerce: akses cepat untuk melihat atau membeli produk.  
-
-### 💬 **5. Modul Forum & Komunitas Pemula**
-**Deskripsi:**  
-Modul ini menjadi ruang diskusi dan interaksi antar pengguna SportPedia. Pengguna dapat berbagi pengalaman, memberikan tips, serta bertanya seputar olahraga yang diminati.  
-
-**Fitur-Fitur:**
-- Forum Diskusi: pengguna dapat membuat topik baru atau membalas diskusi.  
-- Sistem Like & Balasan: mendukung interaksi sosial antar pengguna.  
-- Highlight Komunitas: menampilkan kisah inspiratif atau diskusi paling aktif.  
-
-### 👤 **6. Modul Profil & Perjalanan Olahraga**
-**Deskripsi:**  
-Modul ini berfungsi untuk menampilkan data pengguna, aktivitas yang telah dilakukan, serta perkembangan belajar olahraga. Didesain agar pengguna dapat melacak kemajuan mereka secara visual dan termotivasi untuk terus berlatih. 
-
-**Fitur-Fitur:**
-- Profil Pengguna: berisi identitas dasar, olahraga favorit, dan preferensi pengguna.
-- Riwayat Aktivitas: daftar aktivitas pengguna di forum, pustaka, dan video.
-- Pengaturan Akun: ubah profil, password, atau preferensi tampilan.
-
-## 🎯 4. Target Pengguna  
-
-- 👩‍💼 **Individu Dewasa & Profesional Muda:**  
-  Mereka yang ingin mencari hobi baru untuk menyeimbangkan hidup dan mengurangi stres, namun memiliki waktu terbatas untuk riset mendalam.  
-
-- 🎓 **Mahasiswa dan Pelajar:**
-  Mereka yang ingin mencoba kegiatan baru di luar akademis atau bergabung dengan unit kegiatan mahasiswa (UKM) olahraga.  
-
-- 👨‍👩‍👧 **Orang Tua:**  
-  Mereka yang ingin memperkenalkan olahraga tertentu kepada anak-anaknya dan membutuhkan panduan dasar.  
-
-- 🤔 **Siapapun yang "Penasaran":**  
-  Individu yang sering tertarik pada berbagai macam olahraga namun selalu ragu untuk mengambil langkah pertama.  
-
-
-## 🧭 Daftar Modul SportPedia  
-
+## 🧭 Daftar Modul SportPedia
 | No | Modul | Deskripsi Singkat |
-|----|--------|-------------------|
-| 1 | Beranda & Navigasi Utama | Tampilan utama dengan fitur pencarian & highlight olahraga |
-| 2 | Pustaka Olahraga | Kumpulan informasi teori dan teknik dasar berbagai cabang olahraga |
-| 3 | Galeri Video Tutorial | Video pembelajaran interaktif untuk pemula |
-| 4 | Direktori Perlengkapan | Panduan lengkap alat dan rekomendasi merek |
-| 5 | Forum & Komunitas | Ruang diskusi dan tanya jawab antar pengguna |
+|----|-------|-------------------|
+| 1 | Beranda & Navigasi | Tampilan utama dengan pencarian & highlight |
+| 2 | Pustaka Olahraga | Informasi teori dan teknik dasar olahraga |
+| 3 | Galeri Video | Video tutorial interaktif untuk pemula |
+| 4 | Gear Guide | Panduan alat & rekomendasi merek |
+| 5 | Forum & Komunitas | Ruang diskusi dan tanya jawab |
 | 6 | Profil & Perjalanan | Pelacakan perkembangan olahraga pengguna |
 
---- 
+---
 
-## Pembagian Tugas Per-pekan
+## 📅 Pembagian Tugas Per-Pekan
 
-### **Pekan 1: API CRUD Fitur Utama**
-- **Chevinka (Beranda & Navigasi):**
-  - API testimoni (list, create, update, delete)
-  - API kategori populer/what’s hot (read)
-- **Freya (Pustaka Olahraga):**
-  - API daftar olahraga (list, detail, create, update, delete)
-- **Kalista (Galeri Video):**
-  - API katalog video (list, detail)
-- **Angie (Gear Guide):**
-  - API daftar alat (list, detail)
-- **Haikal (Forum):**
-  - API forum (list, detail, create topik)
-- **Fadhil (Profil & Perjalanan):**
-  - API profil user (read, update)
+### 🗓️ Pekan 1: Setup Proyek & Dokumentasi Awal
+- **Chevinka Queen Cilia Sidabutar**
+  - Mengisi deskripsi aplikasi (nama, tagline, fungsi utama).
+  - Menulis bagian peran/aktor pengguna (User & Admin).
+- **Ahmad Haikal Najmuddin**
+  - Membuat codebase Flutter SportPedia.
+  - Menyusun struktur folder.
+- **Freya Zahra Anindyabhakti**
+  - Menuliskan daftar modul di README.
+  - Menambahkan pembagian kerja per anggota untuk tiap modul.
+- **Angelique Natasya B.c Siagian**
+  - Menyusun tabel anggota & NPM.
+  - Menambahkan placeholder/link Figma di README.
+- **Kalista Wiarta**
+  - Membuat GitHub repository kelompok.
+  - Menjelaskan hak akses masing-masing aktor.
+- **Ainur Fadhil**
+  - Menulis alur integrasi Flutter ↔ Web Service (request, validasi server, response JSON).
+  - Merapikan struktur & format README.
+- **Seluruh Anggota**
+  - Menyamakan flow aplikasi.
+  - Review README agar konsisten dengan rencana pengembangan.
 
-### **Pekan 2: API CRUD Fitur Pendukung & Relasi**
-- **chevinka:**  
-  - API search bar (search olahraga & alat)
-  - API navigasi cepat (read static/menu)
-- **Freya:**  
-  - API filter/sortir olahraga, bookmark olahraga
-  - API admin edit olahraga
-- **Kalista:**  
-  - API filter video, komentar & rating video
-- **Angie:**  
-  - API filter alat, rekomendasi merek, e-commerce link
-- **Haikal:**  
-  - API balasan forum, like, highlight komunitas
-- **Fadhil:**  
-  - API riwayat aktivitas, pengaturan akun
+### 🗓️ Pekan 2: API CRUD Fitur Utama
+- **Chevinka (Beranda & Navigasi)**: API testimoni (list/create/update/delete), API kategori populer (read).
+- **Freya (Pustaka Olahraga)**: API daftar olahraga (list/detail/create/update/delete).
+- **Kalista (Galeri Video)**: API katalog video (list/detail).
+- **Angie (Gear Guide)**: API daftar alat (list/detail).
+- **Haikal (Forum)**: API forum (list/detail/create topik).
+- **Fadhil (Profil & Perjalanan)**: API profil user (read/update).
 
-- **KELOMPOK:**  
-  - Review & testing internal seluruh endpoint API.
-  - Dokumentasi endpoint (Swagger/README).
-  - Siapkan dummy data untuk integrasi.
+### 🗓️ Pekan 3: API CRUD Fitur Pendukung & Relasi
+- **Chevinka**: API search bar (olahraga & alat), API navigasi cepat (read static/menu).
+- **Freya**: API filter/sortir olahraga, bookmark olahraga, admin edit olahraga.
+- **Kalista**: API filter video, komentar & rating video.
+- **Angie**: API filter alat, rekomendasi merek, e-commerce link.
+- **Haikal**: API balasan forum, like, highlight komunitas.
+- **Fadhil**: API riwayat aktivitas, pengaturan akun.
+- **Kelompok**: Review & testing internal endpoint, dokumentasi endpoint (Swagger/README lanjutan), siapkan dummy data integrasi Flutter.
 
-### **Pekan 3: Integrasi API ke Flutter**
-- **chevinka:**  
-  - Integrasi API ke UI home, search, kategori populer, testimoni.
-- **Freya:**  
-  - Integrasi API ke UI pustaka olahraga, filter, detail, bookmark.
-- **Kalista:**  
-  - Integrasi API ke UI galeri video, filter, komentar, rating.
-- **Angie:**  
-  - Integrasi API ke UI gear guide, alat, rekomendasi, e-commerce.
-- **Haikal:**  
-  - Integrasi API ke UI forum, diskusi, highlight komunitas.
-- **Fadhil:**  
-  - Integrasi API ke UI profil, riwayat, pengaturan akun.
+### 🗓️ Pekan 4: Integrasi API, Sinkronisasi & Debugging
+- **Chevinka**: Integrasi API ke UI home/search/kategori populer/testimoni, sinkronisasi tampilan dengan modul lain.
+- **Freya**: Integrasi API ke UI pustaka olahraga (list/detail/filter/bookmark), sinkronisasi dengan bookmark/forum/gear.
+- **Kalista**: Integrasi API ke UI galeri video (list/detail/filter/komentar/rating), sinkronisasi dengan pustaka & forum.
+- **Angie**: Integrasi API ke UI gear guide (alat/rekomendasi/e-commerce), sinkronisasi dengan pustaka & home.
+- **Haikal**: Integrasi API ke UI forum (diskusi/balasan/like/highlight), sinkronisasi dengan pustaka, video, profil.
+- **Fadhil**: Integrasi API ke UI profil, riwayat aktivitas, pengaturan akun; sinkronisasi dengan seluruh modul.
+- **Kelompok**: Debugging error integrasi (API & Flutter), uji coba end-to-end (login → olahraga → video → gear → forum → profil), review bersama & refactor bila perlu.
 
-- **KELOMPOK:**  
-  - Review progres integrasi, pastikan data tampil di semua modul.
-
-### **Pekan 4: Sinkronisasi & Debugging**
-- **chevinka:**  
-  - Sinkronisasi tampilan home, search, testimoni dengan modul lain.
-- **Freya:**  
-  - Sinkronisasi pustaka olahraga dengan bookmark, forum, dsb.
-- **Kalista:**  
-  - Sinkronisasi galeri video dengan pustaka & forum.
-- **Angie:**  
-  - Sinkronisasi gear guide dengan pustaka & home.
-- **Haikal:**  
-  - Sinkronisasi forum dengan pustaka, galeri, dsb.
-- **Fadhil:**  
-  - Sinkronisasi profil dengan seluruh aktivitas user.
-
-- **KELOMPOK:**  
-  - Debugging error integrasi, perbaiki bug API maupun frontend.
-  - Uji coba end-to-end seluruh alur aplikasi.
-  - Review bersama, refactor kode jika perlu.
-
-### **Pekan 5: Validasi, Finalisasi, & Presentasi**
-- **chevinka:**  
-  - Validasi fitur home, search, testimoni, dan navigasi.
-- **Freya:**  
-  - Validasi fitur pustaka olahraga.
-- **Kalista:**  
-  - Validasi fitur galeri video.
-- **Angie:**  
-  - Validasi fitur gear guide.
-- **Haikal:**  
-  - Validasi fitur forum.
-- **Fadhil:**  
-  - Validasi fitur profil & perjalanan olahraga.
-
-- **KELOMPOK:**  
-  - Integrasi akhir, end-to-end test, dokumentasi, dan persiapan presentasi.
-  - Buffer time untuk bug fixing atau revisi minor.
-  - Presentasi/demo ke dosen/klien.
+### 🗓️ Pekan 5: Validasi, Finalisasi, & Presentasi
+- **Chevinka**: Validasi home, search, testimoni, navigasi.
+- **Freya**: Validasi pustaka olahraga (list/detail/filter/bookmark/admin edit).
+- **Kalista**: Validasi galeri video (tampil/filter/komentar/rating).
+- **Angie**: Validasi gear guide (alat, rentang harga, rekomendasi merek, link e-commerce).
+- **Haikal**: Validasi forum (topik, balasan, like, highlight komunitas).
+- **Fadhil**: Validasi profil & perjalanan olahraga (profil, riwayat, pengaturan akun).
+- **Kelompok**: Integrasi akhir & uji coba end-to-end final, finalisasi dokumentasi (README, API, diagram alur), buffer bug fixing & revisi minor, persiapan presentasi/demo ke dosen/klien.
 
 ---
 
