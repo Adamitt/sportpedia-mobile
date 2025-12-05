@@ -308,10 +308,23 @@ class _LoginPageState extends State<LoginPage> {
         if (request.loggedIn) {
           String message = response['message'] ?? 'Login berhasil';
           String uname = response['username'] ?? username;
+          bool isStaff = response['is_staff'] ?? false;
+          bool isSuperuser = response['is_superuser'] ?? false;
+          bool isAdmin = isStaff || isSuperuser;
 
-          Navigator.pushReplacementNamed(context, '/');
+          // Navigate dengan membawa info admin status
+          Navigator.pushReplacementNamed(
+            context,
+            '/',
+            arguments: {'isAdmin': isAdmin, 'username': uname},
+          );
 
-          _showSnackBar('$message Selamat datang, $uname!', isError: false);
+          _showSnackBar(
+            isAdmin
+                ? 'Selamat datang, Admin $uname!'
+                : '$message Selamat datang, $uname!',
+            isError: false,
+          );
         } else {
           _showSnackBar(
             response['message'] ??

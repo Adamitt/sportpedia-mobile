@@ -8,6 +8,8 @@ import 'screens/register.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/activity_history_screen.dart';
 import 'screens/profile/account_settings_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
+import 'screens/admin/manage_admin_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,13 +33,45 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         initialRoute: '/login',
-        routes: {
-          '/login': (context) => const LoginPage(),
-          '/register': (context) => const RegisterPage(),
-          '/': (context) => const HomePage(),
-          '/profile': (context) => const ProfileScreen(),
-          '/activity-history': (context) => const ActivityHistoryScreen(),
-          '/settings': (context) => const AccountSettingsScreen(),
+        onGenerateRoute: (settings) {
+          // Handle routes with arguments
+          if (settings.name == '/') {
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (context) => HomePage(
+                isAdmin: args?['isAdmin'] ?? false,
+                username: args?['username'] ?? '',
+              ),
+            );
+          }
+
+          // Default routes
+          switch (settings.name) {
+            case '/login':
+              return MaterialPageRoute(builder: (_) => const LoginPage());
+            case '/register':
+              return MaterialPageRoute(builder: (_) => const RegisterPage());
+            case '/profile':
+              return MaterialPageRoute(builder: (_) => const ProfileScreen());
+            case '/activity-history':
+              return MaterialPageRoute(
+                builder: (_) => const ActivityHistoryScreen(),
+              );
+            case '/settings':
+              return MaterialPageRoute(
+                builder: (_) => const AccountSettingsScreen(),
+              );
+            case '/admin':
+              return MaterialPageRoute(
+                builder: (_) => const AdminDashboardScreen(),
+              );
+            case '/manage-admin':
+              return MaterialPageRoute(
+                builder: (_) => const ManageAdminScreen(),
+              );
+            default:
+              return MaterialPageRoute(builder: (_) => const LoginPage());
+          }
         },
       ),
     );
@@ -45,10 +79,13 @@ class MyApp extends StatelessWidget {
 }
 
 // ============================================================
-// HOME PAGE - Simple Navigation
+// HOME PAGE - Simple Navigation with Admin Support
 // ============================================================
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool isAdmin;
+  final String username;
+
+  const HomePage({super.key, this.isAdmin = false, this.username = ''});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -57,14 +94,69 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  // Halaman untuk setiap tab
-  static const List<Widget> _pages = [
-    PlaceholderPage(title: 'Beranda', icon: Icons.home),
-    PlaceholderPage(title: 'Pustaka Olahraga', icon: Icons.sports_soccer),
-    PlaceholderPage(title: 'Galeri Video', icon: Icons.video_library),
-    PlaceholderPage(title: 'Forum', icon: Icons.forum),
-    ProfileScreen(), // Modul Fadhil
-  ];
+  // Getter untuk halaman berdasarkan status admin
+  List<Widget> get _pages {
+    final basPages = <Widget>[
+      const PlaceholderPage(title: 'Beranda', icon: Icons.home),
+      const PlaceholderPage(
+        title: 'Pustaka Olahraga',
+        icon: Icons.sports_soccer,
+      ),
+      const PlaceholderPage(title: 'Galeri Video', icon: Icons.video_library),
+      const PlaceholderPage(title: 'Forum', icon: Icons.forum),
+      const ProfileScreen(), // Modul Fadhil
+    ];
+
+    if (widget.isAdmin) {
+      // Tambahkan halaman admin di index 5
+      basPages.add(const AdminDashboardScreen());
+    }
+
+    return basPages;
+  }
+
+  // Getter untuk navigation destinations
+  List<NavigationDestination> get _destinations {
+    final baseDestinations = <NavigationDestination>[
+      const NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Beranda',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.sports_soccer_outlined),
+        selectedIcon: Icon(Icons.sports_soccer),
+        label: 'Olahraga',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.video_library_outlined),
+        selectedIcon: Icon(Icons.video_library),
+        label: 'Video',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.forum_outlined),
+        selectedIcon: Icon(Icons.forum),
+        label: 'Forum',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person),
+        label: 'Profil',
+      ),
+    ];
+
+    if (widget.isAdmin) {
+      baseDestinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.admin_panel_settings_outlined),
+          selectedIcon: Icon(Icons.admin_panel_settings),
+          label: 'Admin',
+        ),
+      );
+    }
+
+    return baseDestinations;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,33 +169,7 @@ class _HomePageState extends State<HomePage> {
             _selectedIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.sports_soccer_outlined),
-            selectedIcon: Icon(Icons.sports_soccer),
-            label: 'Olahraga',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.video_library_outlined),
-            selectedIcon: Icon(Icons.video_library),
-            label: 'Video',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.forum_outlined),
-            selectedIcon: Icon(Icons.forum),
-            label: 'Forum',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
+        destinations: _destinations,
       ),
     );
   }
