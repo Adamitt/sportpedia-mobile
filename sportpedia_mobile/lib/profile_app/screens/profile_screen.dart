@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-import '../../models/user_profile.dart';
-import '../../models/activity_history.dart';
-import '../../services/profile_service.dart';
+import '../models/user_profile.dart';
+import '../models/activity_history.dart';
+import '../services/profile_service.dart';
 import 'activity_history_screen.dart';
 import 'account_settings_screen.dart';
 
@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfileData() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -132,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirm == true) {
       final request = context.read<CookieRequest>();
       final result = await ProfileService.clearActivityHistory(request);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -167,11 +167,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? _buildErrorWidget()
-              : RefreshIndicator(
-                  onRefresh: _loadProfileData,
-                  child: _buildProfileContent(),
-                ),
+          ? _buildErrorWidget()
+          : RefreshIndicator(
+              onRefresh: _loadProfileData,
+              child: _buildProfileContent(),
+            ),
     );
   }
 
@@ -249,7 +249,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               child: ClipOval(
-                child: _profile?.profileImage != null &&
+                child:
+                    _profile?.profileImage != null &&
                         _profile!.profileImage!.isNotEmpty
                     ? Image.network(
                         _profile!.profileImage!,
@@ -431,10 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: TextStyle(color: Colors.grey[600]),
-          ),
+          child: Text(value, style: TextStyle(color: Colors.grey[600])),
         ),
       ],
     );
@@ -593,10 +591,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Timestamp
           Text(
             activity.formattedDate,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
           ),
         ],
       ),

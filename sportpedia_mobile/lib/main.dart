@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 
-// Import screens
-import 'screens/login.dart';
-import 'screens/register.dart';
-import 'screens/profile/profile_screen.dart';
-import 'screens/profile/activity_history_screen.dart';
-import 'screens/profile/account_settings_screen.dart';
-import 'screens/admin/admin_dashboard_screen.dart';
-import 'screens/admin/manage_admin_screen.dart';
+// Import screens dari accounts
+import 'accounts/screens/login.dart';
+import 'accounts/screens/register.dart';
+
+// Import screens dari profile_app
+import 'profile_app/screens/profile_screen.dart';
+import 'profile_app/screens/activity_history_screen.dart';
+import 'profile_app/screens/account_settings_screen.dart';
+
+// Import screens dari admin_sportpedia
+import 'admin_sportpedia/screens/admin_dashboard_screen.dart';
+import 'admin_sportpedia/screens/manage_admin_screen.dart';
 
 void main() {
   runApp(const MyApp());

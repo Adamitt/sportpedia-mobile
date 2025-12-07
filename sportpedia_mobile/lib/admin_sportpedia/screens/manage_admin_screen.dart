@@ -82,7 +82,8 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
         onPressed: () => _showAddAdminDialog(),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.person_add, color: Colors.white),
-        label: const Text('Tambah Admin', style: TextStyle(color: Colors.white)),
+        label:
+            const Text('Tambah Admin', style: TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -223,10 +224,7 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
                       const SizedBox(height: 4),
                       Text(
                         admin['email'] ?? 'No email',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -238,9 +236,7 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: isSuperuser
-                        ? Colors.purple[100]
-                        : Colors.blue[100],
+                    color: isSuperuser ? Colors.purple[100] : Colors.blue[100],
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -248,7 +244,8 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isSuperuser ? Colors.purple[700] : Colors.blue[700],
+                      color:
+                          isSuperuser ? Colors.purple[700] : Colors.blue[700],
                     ),
                   ),
                 ),
@@ -613,10 +610,16 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
 
       if (mounted) {
         if (response['status'] == true) {
-          _showSnackBar(response['message'] ?? 'Admin berhasil ditambahkan!', isError: false);
+          _showSnackBar(
+            response['message'] ?? 'Admin berhasil ditambahkan!',
+            isError: false,
+          );
           _loadAdmins();
         } else {
-          _showSnackBar(response['message'] ?? 'Gagal menambahkan admin', isError: true);
+          _showSnackBar(
+            response['message'] ?? 'Gagal menambahkan admin',
+            isError: true,
+          );
         }
       }
     } catch (e) {
@@ -655,10 +658,16 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
 
       if (mounted) {
         if (response['status'] == true) {
-          _showSnackBar(response['message'] ?? 'Admin berhasil diperbarui!', isError: false);
+          _showSnackBar(
+            response['message'] ?? 'Admin berhasil diperbarui!',
+            isError: false,
+          );
           _loadAdmins();
         } else {
-          _showSnackBar(response['message'] ?? 'Gagal memperbarui admin', isError: true);
+          _showSnackBar(
+            response['message'] ?? 'Gagal memperbarui admin',
+            isError: true,
+          );
         }
       }
     } catch (e) {
@@ -679,10 +688,16 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
 
       if (mounted) {
         if (response['status'] == true) {
-          _showSnackBar(response['message'] ?? 'Admin berhasil dihapus!', isError: false);
+          _showSnackBar(
+            response['message'] ?? 'Admin berhasil dihapus!',
+            isError: false,
+          );
           _loadAdmins();
         } else {
-          _showSnackBar(response['message'] ?? 'Gagal menghapus admin', isError: true);
+          _showSnackBar(
+            response['message'] ?? 'Gagal menghapus admin',
+            isError: true,
+          );
         }
       }
     } catch (e) {
@@ -709,7 +724,8 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
           ),
           backgroundColor: isError ? Colors.red[600] : Colors.green[600],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
   }

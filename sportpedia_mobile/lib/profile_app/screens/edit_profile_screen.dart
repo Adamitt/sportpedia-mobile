@@ -4,8 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-import '../../models/user_profile.dart';
-import '../../services/profile_service.dart';
+import '../models/user_profile.dart';
+import '../services/profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile profile;
