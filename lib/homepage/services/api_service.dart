@@ -6,35 +6,14 @@ import '../../config/api_config.dart';
 
 class HomepageApiService {
   static const String baseUrl = ApiConfig.baseUrl;
-  static String? _csrfToken;
-  static final http.Client _client = http.Client();
-
-  /// GET: Ambil CSRF token dari Django
-  static Future<String> _getCsrfToken() async {
-    if (_csrfToken != null) return _csrfToken!;
-    
-    try {
-      final uri = Uri.parse('$baseUrl/api/csrf-token/');
-      final response = await _client.get(uri);
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _csrfToken = data['csrfToken'] as String;
-        return _csrfToken!;
-      }
-    } catch (e) {
-      print('Error getting CSRF token: $e');
-    }
-    
-    return '';
-  }
 
   // ============================================
   // TESTIMONIALS API
   // ============================================
 
-  /// GET: List testimonials
+  /// GET: List testimonials (using CookieRequest to send cookies for is_owner detection)
   static Future<List<Testimonial>> getTestimonials({
+    required dynamic request, // CookieRequest
     String category = 'all',
     int limit = 30,
   }) async {
@@ -45,123 +24,130 @@ class HomepageApiService {
         'limit': limit.toString(),
       });
 
-      final response = await http.get(uri);
+      // Use CookieRequest.get to send cookies so Django can determine is_owner
+      final response = await request.get(uri.toString());
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final items = data['items'] as List;
+      if (response is Map<String, dynamic>) {
+        final items = response['items'] as List;
         return items.map((item) => Testimonial.fromJson(item)).toList();
       } else {
-        throw Exception('Failed to load testimonials: ${response.statusCode}');
+        throw Exception('Failed to load testimonials: Invalid response format');
       }
     } catch (e) {
       throw Exception('Error fetching testimonials: $e');
     }
   }
 
-  /// POST: Create testimonial
+  /// POST: Create testimonial (using CookieRequest for authentication)
   static Future<Testimonial> createTestimonial({
     required String text,
-    String? title,
+    required dynamic request, // CookieRequest
     String category = 'library',
     String? imageUrl,
   }) async {
     try {
-      // Get CSRF token dulu
-      final csrfToken = await _getCsrfToken();
-      
       final uri = Uri.parse('$baseUrl/api/testimonials/create/');
-      final payload = json.encode({
+      final payload = <String, dynamic>{
         'text': text,
-        if (title != null && title.isNotEmpty) 'title': title,
         'category': category,
         if (imageUrl != null && imageUrl.isNotEmpty) 'image_url': imageUrl,
-      });
+      };
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          if (csrfToken.isNotEmpty) 'X-CSRFToken': csrfToken,
-        },
-        body: payload,
+      final response = await request.post(
+        uri.toString(),
+        payload,
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return Testimonial.fromJson(data['item']);
+      // Check if response is a Map (JSON) or String (HTML error page)
+      if (response is Map<String, dynamic>) {
+        if (response['item'] != null) {
+          return Testimonial.fromJson(response['item']);
+        } else {
+          throw Exception(response['error'] ?? 'Failed to create testimonial');
+        }
       } else {
-        final error = response.body;
-        throw Exception('Failed to create testimonial: $error');
+        // If response is not a Map, it might be an HTML error page
+        throw Exception('Server returned invalid response. Please check if you are logged in and try again.');
       }
     } catch (e) {
-      throw Exception('Error creating testimonial: $e');
+      // Provide more helpful error message
+      String errorMsg = e.toString();
+      if (errorMsg.contains('FormatException') || errorMsg.contains('<!DOCTYPE')) {
+        errorMsg = 'Server error: Please make sure you are logged in and try again.';
+      }
+      throw Exception('Error creating testimonial: $errorMsg');
     }
   }
 
-  /// POST: Update testimonial
+  /// POST: Update testimonial (using CookieRequest for authentication)
   static Future<Testimonial> updateTestimonial({
     required int id,
-    String? title,
+    required dynamic request, // CookieRequest
     String? text,
     String? category,
     String? imageUrl,
   }) async {
     try {
-      // Get CSRF token dulu
-      final csrfToken = await _getCsrfToken();
-      
       final uri = Uri.parse('$baseUrl/api/testimonials/$id/update/');
       final payload = <String, dynamic>{};
-      if (title != null) payload['title'] = title;
       if (text != null) payload['text'] = text;
       if (category != null) payload['category'] = category;
       if (imageUrl != null) payload['image_url'] = imageUrl;
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          if (csrfToken.isNotEmpty) 'X-CSRFToken': csrfToken,
-        },
-        body: json.encode(payload),
+      final response = await request.post(
+        uri.toString(),
+        payload,
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return Testimonial.fromJson(data['item']);
+      // Check if response is a Map (JSON) or String (HTML error page)
+      if (response is Map<String, dynamic>) {
+        if (response['item'] != null || response['ok'] == true || response['status'] == 'success') {
+          return Testimonial.fromJson(response['item']);
+        } else {
+          throw Exception(response['error'] ?? 'Failed to update testimonial');
+        }
       } else {
-        final error = response.body;
-        throw Exception('Failed to update testimonial: $error');
+        throw Exception('Server returned invalid response. Please check if you are logged in and try again.');
       }
     } catch (e) {
-      throw Exception('Error updating testimonial: $e');
+      String errorMsg = e.toString();
+      if (errorMsg.contains('FormatException') || errorMsg.contains('<!DOCTYPE')) {
+        errorMsg = 'Server error: Please make sure you are logged in and try again.';
+      }
+      throw Exception('Error updating testimonial: $errorMsg');
     }
   }
 
-  /// POST: Delete testimonial
-  static Future<bool> deleteTestimonial(int id) async {
+  /// POST: Delete testimonial (using CookieRequest for authentication)
+  static Future<bool> deleteTestimonial({
+    required int id,
+    required dynamic request, // CookieRequest
+  }) async {
     try {
-      // Get CSRF token dulu
-      final csrfToken = await _getCsrfToken();
-      
       final uri = Uri.parse('$baseUrl/api/testimonials/$id/delete/');
 
-      final response = await http.post(
-        uri,
-        headers: {
-          if (csrfToken.isNotEmpty) 'X-CSRFToken': csrfToken,
-        },
+      final response = await request.post(
+        uri.toString(),
+        {},
       );
 
-      if (response.statusCode == 200) {
-        return true;
+      // Check if response is a Map (JSON) or String (HTML error page)
+      if (response is Map<String, dynamic>) {
+        // Django returns {"status": "success"} or {"ok": true}
+        if (response['status'] == 'success' || response['ok'] == true || response.containsKey('status')) {
+          return true;
+        } else {
+          throw Exception(response['error'] ?? 'Failed to delete testimonial');
+        }
       } else {
-        final error = response.body;
-        throw Exception('Failed to delete testimonial: $error');
+        throw Exception('Server returned invalid response. Please check if you are logged in and try again.');
       }
     } catch (e) {
-      throw Exception('Error deleting testimonial: $e');
+      String errorMsg = e.toString();
+      if (errorMsg.contains('FormatException') || errorMsg.contains('<!DOCTYPE')) {
+        errorMsg = 'Server error: Please make sure you are logged in and try again.';
+      }
+      throw Exception('Error deleting testimonial: $errorMsg');
     }
   }
 

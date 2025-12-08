@@ -48,14 +48,17 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
       decoration: BoxDecoration(
         gradient: AppColors.whatsHotBackgroundGradient,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      padding: EdgeInsets.symmetric(
+        vertical: 48,
+        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 24,
+      ),
       margin: const EdgeInsets.only(top: 60),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // Dekorasi whatshot1.png - di belakang konten
           Positioned(
-            left: -160,
+            left: -200,
             top: -120,
             child: IgnorePointer(
               child: Row(
@@ -64,10 +67,10 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                 children: [
                   // Gambar asset
                   Opacity(
-                    opacity: 0.8,
+                    opacity: 0.6,
                     child: SizedBox(
-                      width: 860.649,
-                      height: 460,
+                      width: 700,
+                      height: 380,
                       child: Image.asset(
                         'assets/images/whatshot1.png',
                         fit: BoxFit.contain,
@@ -132,70 +135,75 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
             ),
           ),
           // Content
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section Header - sesuai Django, tidak ada tombol add (read-only dari ViewCounter)
-              const SizedBox(height: 20),
-
-              // Content
-              if (_isLoading)
-                const SizedBox(
-                  height: 200,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (_error != null)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: 48, color: Colors.red.shade300),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Error loading popular categories',
-                          style: TextStyle(color: Colors.red.shade700),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _loadItems,
-                          child: const Text('Retry'),
-                        ),
-                      ],
+          Padding(
+            padding: EdgeInsets.only(
+              left: MediaQuery.of(context).size.width > 1024 ? 400 : 200,
+              right: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Content
+                if (_isLoading)
+                  const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_error != null)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.error_outline,
+                              size: 48, color: Colors.red.shade300),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error loading popular categories',
+                            style: TextStyle(color: Colors.red.shade700),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: _loadItems,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (_items.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: const Center(
+                      child: Text(
+                        'Belum ada data What\'s Hot',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width > 1024 ? 0 : 8,
+                    ),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : (MediaQuery.of(context).size.width > 600 ? 2 : 2),
+                        crossAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : 16,
+                        mainAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : 16,
+                        childAspectRatio: MediaQuery.of(context).size.width > 1024 ? 0.7 : 0.75,
+                      ),
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        return _buildHotCard(item);
+                      },
                     ),
                   ),
-                )
-              else if (_items.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  child: const Center(
-                    child: Text(
-                      'Belum ada data What\'s Hot',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      return _buildHotCard(item);
-                    },
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../services/api_service.dart';
 import '../models/testimonial.dart';
 
 class AddTestimonialDialog extends StatefulWidget {
   final Function(Testimonial)? onSuccess;
+  final Testimonial? testimonial; // Optional: jika ada, berarti mode edit
+  final CookieRequest? request; // Optional: untuk edit/delete
 
-  const AddTestimonialDialog({super.key, this.onSuccess});
+  const AddTestimonialDialog({super.key, this.onSuccess, this.testimonial, this.request});
 
   @override
   State<AddTestimonialDialog> createState() => _AddTestimonialDialogState();
@@ -13,7 +16,6 @@ class AddTestimonialDialog extends StatefulWidget {
 
 class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
   final _textController = TextEditingController();
   final _imageUrlController = TextEditingController();
   
@@ -22,8 +24,18 @@ class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // Jika mode edit, prefill form dengan data testimonial
+    if (widget.testimonial != null) {
+      _textController.text = widget.testimonial!.text;
+      _selectedCategory = widget.testimonial!.category;
+      _imageUrlController.text = widget.testimonial!.imageUrl;
+    }
+  }
+
+  @override
   void dispose() {
-    _titleController.dispose();
     _textController.dispose();
     _imageUrlController.dispose();
     super.dispose();
@@ -40,14 +52,36 @@ class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
     });
 
     try {
-      final testimonial = await HomepageApiService.createTestimonial(
-        title: _titleController.text.trim(),
-        text: _textController.text.trim(),
-        category: _selectedCategory,
-        imageUrl: _imageUrlController.text.trim().isEmpty 
-            ? null 
-            : _imageUrlController.text.trim(),
-      );
+      Testimonial testimonial;
+      
+      if (widget.testimonial != null) {
+        // Mode edit - butuh CookieRequest
+        if (widget.request == null) {
+          throw Exception('Request required for editing testimonial');
+        }
+        testimonial = await HomepageApiService.updateTestimonial(
+          id: widget.testimonial!.id,
+          request: widget.request!,
+          text: _textController.text.trim(),
+          category: _selectedCategory,
+          imageUrl: _imageUrlController.text.trim().isEmpty 
+              ? null 
+              : _imageUrlController.text.trim(),
+        );
+      } else {
+        // Mode add - butuh CookieRequest
+        if (widget.request == null) {
+          throw Exception('Request required for creating testimonial');
+        }
+        testimonial = await HomepageApiService.createTestimonial(
+          request: widget.request!,
+          text: _textController.text.trim(),
+          category: _selectedCategory,
+          imageUrl: _imageUrlController.text.trim().isEmpty 
+              ? null 
+              : _imageUrlController.text.trim(),
+        );
+      }
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -55,8 +89,10 @@ class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
           widget.onSuccess!(testimonial);
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Testimonial berhasil ditambahkan!'),
+          SnackBar(
+            content: Text(widget.testimonial != null 
+                ? 'Testimonial berhasil diperbarui!' 
+                : 'Testimonial berhasil ditambahkan!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -86,9 +122,9 @@ class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Tambah Testimonial',
-                    style: TextStyle(
+                  Text(
+                    widget.testimonial != null ? 'Edit Testimonial' : 'Tambah Testimonial',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -123,18 +159,7 @@ class _AddTestimonialDialogState extends State<AddTestimonialDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Title
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Judul (opsional)',
-                          hintText: 'Masukkan judul testimonial',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Text
+                      // Text (tidak ada field judul sesuai Django template)
                       TextFormField(
                         controller: _textController,
                         decoration: const InputDecoration(

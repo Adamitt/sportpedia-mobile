@@ -175,12 +175,23 @@ class QuickNavigationSection extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
+        child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            // TODO: Navigate to route
+            final route = item['route'] as String;
+            if (route == '/gearguide') {
+              Navigator.pushNamed(context, '/gearguide');
+            } else {
+              // Untuk route lain, show coming soon
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${item['title']} page coming soon'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(12),

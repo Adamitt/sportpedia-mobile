@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../../profile_app/screens/profile_screen.dart';
 
 class HomeNavBar extends StatefulWidget {
   const HomeNavBar({super.key});
@@ -93,7 +96,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     // Logo
                     InkWell(
                       onTap: () {
-                        // Navigate to home
+                        Navigator.pushReplacementNamed(context, '/');
                       },
                       child: Row(
                         children: [
@@ -180,7 +183,18 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                               ),
-                              onSubmitted: _performSearch,
+                              onSubmitted: (query) {
+                                // Navigate to gearguide dengan search query
+                                if (query.trim().isNotEmpty) {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/gearguide',
+                                    arguments: {'searchQuery': query},
+                                  );
+                                } else {
+                                  _performSearch(query);
+                                }
+                              },
                             ),
                           );
                         }
@@ -191,44 +205,86 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     const SizedBox(width: 16),
 
                     // Profile Section / Auth Buttons
-                    Row(
-                      children: [
-                        // TODO: Check if user is authenticated
-                        // For now, show auth buttons
-                        TextButton(
-                          onPressed: () {
-                            // Navigate to login
-                          },
-                          child: const Text(
-                            'Log in',
-                            style: TextStyle(
-                              color: AppColors.primaryBlueDark,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Navigate to register
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryBlueDark,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 4,
-                          ),
-                          child: const Text(
-                            'Sign up',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Consumer<CookieRequest>(
+                      builder: (context, request, _) {
+                        if (request.loggedIn) {
+                          // Show profile button jika sudah login
+                          return Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.person),
+                                color: AppColors.primaryBlueDark,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProfileScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  // Logout
+                                  await request.logout("http://localhost:8000/landingpage/api/logout/");
+                                  if (mounted) {
+                                    Navigator.pushReplacementNamed(context, '/');
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Logged out successfully')),
+                                    );
+                                  }
+                                },
+                                child: const Text(
+                                  'Logout',
+                                  style: TextStyle(
+                                    color: AppColors.primaryBlueDark,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          // Show login/signup buttons jika belum login
+                          return Row(
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/login');
+                                },
+                                child: const Text(
+                                  'Log in',
+                                  style: TextStyle(
+                                    color: AppColors.primaryBlueDark,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/register');
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryBlueDark,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 4,
+                                ),
+                                child: const Text(
+                                  'Sign up',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ],
                   ),
@@ -274,7 +330,17 @@ class _HomeNavBarState extends State<HomeNavBar> {
     // TODO: Check if current route matches to set active state
     return InkWell(
       onTap: () {
-        // TODO: Navigate to route
+        if (route == '/gearguide/') {
+          Navigator.pushNamed(context, '/gearguide');
+        } else {
+          // Untuk route lain, show coming soon
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$label page coming soon'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.only(bottom: 4),
