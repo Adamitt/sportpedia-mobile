@@ -7,7 +7,8 @@ import 'package:sportpedia_mobile/models/gear_list.dart';
 
 class GearGuideService {
   // ganti host kalau kamu jalanin server di alamat lain
-  static String get baseUrl => kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+  static String get baseUrl =>
+      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
 
   /// Ambil list gear (GET /gearguide/json/)
   static Future<List<Datum>> fetchGears() async {
@@ -25,7 +26,7 @@ class GearGuideService {
     return gearlist.data;
   }
 
-  /// Submit gear (POST form-encoded ke /gearguide/flutter/add/)
+  /// Submit gear baru (POST form-encoded ke /gearguide/flutter/add/)
   /// Mengembalikan Map: {'success': true, 'data': ...} atau {'success': false, 'message': ...}
   static Future<Map<String, dynamic>> submitGear({
     required String name,
@@ -43,7 +44,7 @@ class GearGuideService {
   }) async {
     final url = Uri.parse('$baseUrl/gearguide/flutter/add/');
 
-    // convert lists -> comma separated string for Django view that uses request.POST.get(...)
+    // convert lists -> comma separated string for Django view yang pakai request.POST.get(...)
     final body = <String, String>{
       'name': name,
       'sport': sportId,
@@ -76,10 +77,27 @@ class GearGuideService {
           final parsed = jsonDecode(utf8.decode(resp.bodyBytes));
           message = parsed.toString();
         } catch (_) {}
-        return {'success': false, 'status': resp.statusCode, 'message': message};
+        return {
+          'success': false,
+          'status': resp.statusCode,
+          'message': message,
+        };
       }
     } catch (e) {
       return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Hapus gear (DELETE/POST ke endpoint Django).
+  /// NOTE: endpoint-nya SILAKAN disesuaikan dengan view Django-mu.
+  static Future<void> deleteGear(dynamic id) async {
+    // contoh: kamu buat view di Django: path("gearguide/flutter/delete/<int:id>/", ...)
+    final url = Uri.parse('$baseUrl/gearguide/flutter/delete/$id/');
+
+    final resp = await http.post(url); // atau .delete(url) kalau view-mu pakai DELETE
+
+    if (resp.statusCode != 200 && resp.statusCode != 204) {
+      throw Exception('Gagal menghapus gear (status: ${resp.statusCode})');
     }
   }
 }

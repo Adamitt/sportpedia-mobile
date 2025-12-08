@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sportpedia_mobile/services/gearguide_service.dart';
+import 'package:sportpedia_mobile/models/gear_list.dart';
 
 class GearFormPage extends StatefulWidget {
-  const GearFormPage({super.key});
+  final Datum? gear; // Tambahkan parameter optional untuk edit mode
+  
+  const GearFormPage({super.key, this.gear});
 
   @override
   State<GearFormPage> createState() => _GearFormPageState();
@@ -13,18 +16,20 @@ class _GearFormPageState extends State<GearFormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
-  String _name = '';
+  // Controllers untuk menyimpan nilai awal saat edit
+  late TextEditingController _nameController;
+  late TextEditingController _functionController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _imageController;
+  late TextEditingController _priceRangeController;
+  late TextEditingController _ecommerceLinkController;
+  late TextEditingController _recommendedBrandsController;
+  late TextEditingController _materialsController;
+  late TextEditingController _careTipsController;
+  late TextEditingController _tagsController;
+
   String _sportId = '';
-  String _function = '';
-  String _description = '';
-  String _image = '';
-  String _priceRange = '';
-  String _ecommerceLink = '';
   String _level = 'beginner';
-  String _recommendedBrandsRaw = '';
-  String _materialsRaw = '';
-  String _careTips = '';
-  String _tagsRaw = '';
 
   final List<Map<String, String>> _sportChoices = [
     {'id': '1', 'name': 'Bulu Tangkis'},
@@ -37,10 +42,69 @@ class _GearFormPageState extends State<GearFormPage> {
     {'id': '8', 'name': 'Futsal'},
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    
+    // Inisialisasi controllers dengan data dari gear jika ada (edit mode)
+    _nameController = TextEditingController(text: widget.gear?.name ?? '');
+    _functionController = TextEditingController(text: widget.gear?.function ?? '');
+    _descriptionController = TextEditingController(text: widget.gear?.description ?? '');
+    _imageController = TextEditingController(text: widget.gear?.image ?? '');
+    _priceRangeController = TextEditingController(text: widget.gear?.priceRange ?? '');
+    _ecommerceLinkController = TextEditingController(text: widget.gear?.ecommerceLink ?? '');
+    _recommendedBrandsController = TextEditingController(
+      text: widget.gear?.recommendedBrands.join(', ') ?? ''
+    );
+    _materialsController = TextEditingController(
+      text: widget.gear?.materials.join(', ') ?? ''
+    );
+    _careTipsController = TextEditingController(text: widget.gear?.careTips ?? '');
+    _tagsController = TextEditingController(
+      text: widget.gear?.tags.join(', ') ?? ''
+    );
+
+    // Set sportId dan level jika edit mode
+    if (widget.gear != null) {
+      // Cari sportId berdasarkan sportName dari gear
+      final sportName = widget.gear!.sportName;
+      final matchingSport = _sportChoices.firstWhere(
+        (s) => s['name'] == sportName,
+        orElse: () => {'id': '', 'name': ''},
+      );
+      _sportId = matchingSport['id'] ?? '';
+      
+      // Konversi levelDisplay ke level yang sesuai dengan form
+      final levelDisplay = widget.gear!.levelDisplay.toLowerCase();
+      if (levelDisplay.contains('pemula') || levelDisplay.contains('beginner')) {
+        _level = 'beginner';
+      } else if (levelDisplay.contains('menengah') || levelDisplay.contains('intermediate')) {
+        _level = 'intermediate';
+      } else if (levelDisplay.contains('profesional') || levelDisplay.contains('advanced')) {
+        _level = 'advanced';
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _functionController.dispose();
+    _descriptionController.dispose();
+    _imageController.dispose();
+    _priceRangeController.dispose();
+    _ecommerceLinkController.dispose();
+    _recommendedBrandsController.dispose();
+    _materialsController.dispose();
+    _careTipsController.dispose();
+    _tagsController.dispose();
+    super.dispose();
+  }
+
   Widget _buildTextField({
     required String label,
     required IconData icon,
-    required Function(String) onChanged,
+    required TextEditingController controller,
     String? Function(String?)? validator,
     int maxLines = 1,
     TextInputType? keyboardType,
@@ -48,6 +112,7 @@ class _GearFormPageState extends State<GearFormPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
+        controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
         style: GoogleFonts.poppins(
@@ -81,7 +146,6 @@ class _GearFormPageState extends State<GearFormPage> {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        onChanged: onChanged,
         validator: validator,
       ),
     );
@@ -135,11 +199,13 @@ class _GearFormPageState extends State<GearFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditMode = widget.gear != null;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          'Add Gear',
+          isEditMode ? 'Edit Gear' : 'Add Gear',
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -182,8 +248,8 @@ class _GearFormPageState extends State<GearFormPage> {
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
-                            Icons.add_circle_outline,
+                          child: Icon(
+                            isEditMode ? Icons.edit_outlined : Icons.add_circle_outline,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -194,7 +260,7 @@ class _GearFormPageState extends State<GearFormPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Add New Gear',
+                                isEditMode ? 'Edit Gear' : 'Add New Gear',
                                 style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -203,7 +269,7 @@ class _GearFormPageState extends State<GearFormPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Fill in the details below',
+                                isEditMode ? 'Update the details below' : 'Fill in the details below',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: Colors.white.withOpacity(0.9),
@@ -232,7 +298,7 @@ class _GearFormPageState extends State<GearFormPage> {
                   _buildTextField(
                     label: 'Gear Name',
                     icon: Icons.label_outline,
-                    onChanged: (v) => _name = v,
+                    controller: _nameController,
                     validator: (v) => (v == null || v.isEmpty) ? 'Name is required' : null,
                   ),
 
@@ -278,14 +344,14 @@ class _GearFormPageState extends State<GearFormPage> {
                   _buildTextField(
                     label: 'Function',
                     icon: Icons.star_outline,
-                    onChanged: (v) => _function = v,
+                    controller: _functionController,
                   ),
 
                   _buildTextField(
                     label: 'Description',
                     icon: Icons.description_outlined,
                     maxLines: 4,
-                    onChanged: (v) => _description = v,
+                    controller: _descriptionController,
                   ),
 
                   const SizedBox(height: 24),
@@ -304,20 +370,20 @@ class _GearFormPageState extends State<GearFormPage> {
                   _buildTextField(
                     label: 'Image URL',
                     icon: Icons.image_outlined,
-                    onChanged: (v) => _image = v,
+                    controller: _imageController,
                     keyboardType: TextInputType.url,
                   ),
 
                   _buildTextField(
                     label: 'Price Range',
                     icon: Icons.attach_money,
-                    onChanged: (v) => _priceRange = v,
+                    controller: _priceRangeController,
                   ),
 
                   _buildTextField(
                     label: 'E-commerce Link',
                     icon: Icons.shopping_cart_outlined,
-                    onChanged: (v) => _ecommerceLink = v,
+                    controller: _ecommerceLinkController,
                     keyboardType: TextInputType.url,
                   ),
 
@@ -337,26 +403,26 @@ class _GearFormPageState extends State<GearFormPage> {
                   _buildTextField(
                     label: 'Recommended Brands (comma separated)',
                     icon: Icons.verified_outlined,
-                    onChanged: (v) => _recommendedBrandsRaw = v,
+                    controller: _recommendedBrandsController,
                   ),
 
                   _buildTextField(
                     label: 'Materials (comma separated)',
                     icon: Icons.layers_outlined,
-                    onChanged: (v) => _materialsRaw = v,
+                    controller: _materialsController,
                   ),
 
                   _buildTextField(
                     label: 'Care Tips',
                     icon: Icons.health_and_safety_outlined,
                     maxLines: 3,
-                    onChanged: (v) => _careTips = v,
+                    controller: _careTipsController,
                   ),
 
                   _buildTextField(
                     label: 'Tags (comma separated)',
                     icon: Icons.local_offer_outlined,
-                    onChanged: (v) => _tagsRaw = v,
+                    controller: _tagsController,
                   ),
 
                   const SizedBox(height: 32),
@@ -391,7 +457,7 @@ class _GearFormPageState extends State<GearFormPage> {
                                 const Icon(Icons.check_circle_outline, size: 20),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Submit Gear',
+                                  isEditMode ? 'Update Gear' : 'Submit Gear',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -426,34 +492,34 @@ class _GearFormPageState extends State<GearFormPage> {
 
     setState(() => _loading = true);
 
-    final recommended = _recommendedBrandsRaw
+    final recommended = _recommendedBrandsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    final materials = _materialsRaw
+    final materials = _materialsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    final tags = _tagsRaw
+    final tags = _tagsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
 
     final result = await GearGuideService.submitGear(
-      name: _name,
+      name: _nameController.text,
       sportId: _sportId,
-      function: _function,
-      description: _description,
-      image: _image,
-      priceRange: _priceRange,
-      ecommerceLink: _ecommerceLink,
+      function: _functionController.text,
+      description: _descriptionController.text,
+      image: _imageController.text,
+      priceRange: _priceRangeController.text,
+      ecommerceLink: _ecommerceLinkController.text,
       level: _level,
       recommendedBrands: recommended,
       materials: materials,
-      careTips: _careTips,
+      careTips: _careTipsController.text,
       tags: tags,
     );
 
@@ -463,6 +529,7 @@ class _GearFormPageState extends State<GearFormPage> {
       if (!mounted) return;
       showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (_) => Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -495,7 +562,9 @@ class _GearFormPageState extends State<GearFormPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Gear has been added successfully',
+                  widget.gear != null 
+                      ? 'Gear has been updated successfully'
+                      : 'Gear has been added successfully',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
@@ -507,8 +576,8 @@ class _GearFormPageState extends State<GearFormPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context, true);
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context, true); // Return true to trigger reload
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3B82F6),
@@ -570,7 +639,7 @@ class _GearFormPageState extends State<GearFormPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Failed to add gear: $message',
+                  'Failed to ${widget.gear != null ? 'update' : 'add'} gear: $message',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 14,

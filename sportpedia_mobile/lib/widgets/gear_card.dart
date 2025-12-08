@@ -1,15 +1,20 @@
+// lib/widgets/gear_card.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sportpedia_mobile/models/gear_list.dart';
 
 class GearCard extends StatelessWidget {
   final Datum datum;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final VoidCallback? onEdit;   // <<< new
+  final VoidCallback? onDelete; // <<< new
 
   const GearCard({
     super.key,
     required this.datum,
-    required this.onTap,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   Color _getLevelColor(String level) {
@@ -40,9 +45,10 @@ class GearCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tags = datum.tags;
-    final imageUrl = datum.image.isNotEmpty ? datum.image : null;
-    final levelColor = _getLevelColor(datum.levelDisplay);
+    final tags = datum.tags ?? <String>[];
+    final imageUrl = (datum.image ?? '').isNotEmpty ? datum.image : null;
+    final levelText = (datum.levelDisplay ?? '').toString();
+    final levelColor = _getLevelColor(levelText);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -107,13 +113,13 @@ class GearCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _getLevelIcon(datum.levelDisplay),
+                              _getLevelIcon(levelText),
                               color: Colors.white,
                               size: 12,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              datum.levelDisplay,
+                              levelText,
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -135,18 +141,50 @@ class GearCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
-                      Text(
-                        datum.name,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E293B),
-                          height: 1.3,
-                          letterSpacing: -0.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      // Title + popup menu row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              datum.name ?? '-',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1E293B),
+                                height: 1.3,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+
+                          // === Popup menu: Edit / Delete ===
+                          PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            onSelected: (val) async {
+                              if (val == 'edit') {
+                                if (onEdit != null) onEdit!();
+                              } else if (val == 'delete') {
+                                if (onDelete != null) onDelete!();
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            ],
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 6),
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.more_vert, size: 18, color: Color(0xFF475569)),
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 6),
@@ -171,7 +209,7 @@ class GearCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              datum.sportName,
+                              datum.sportName ?? '-',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -188,7 +226,7 @@ class GearCard extends StatelessWidget {
                       const SizedBox(height: 10),
 
                       // Price with gradient background
-                      if (datum.priceRange.isNotEmpty)
+                      if ((datum.priceRange ?? '').isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
@@ -219,7 +257,7 @@ class GearCard extends StatelessWidget {
                               const SizedBox(width: 7),
                               Flexible(
                                 child: Text(
-                                  datum.priceRange,
+                                  datum.priceRange ?? '',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
@@ -233,9 +271,8 @@ class GearCard extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
-
-                      if (datum.priceRange.isEmpty)
+                        )
+                      else
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(

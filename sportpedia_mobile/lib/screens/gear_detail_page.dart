@@ -45,16 +45,51 @@ class GearDetailPage extends StatelessWidget {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // LEVEL BADGE
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildLevelBadge() {
+    final config = _getLevelConfig();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: config['bgColor'],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: config['color'].withOpacity(0.3), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(config['icon'], size: 16, color: config['color']),
+          const SizedBox(width: 6),
+          Text(
+            config['text'],
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: config['color'],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // TAG CHIP
   // ═══════════════════════════════════════════════════════════
   Widget _buildTagChip(String label, {IconData? icon}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF6366F1).withOpacity(0.1),
+            const Color(0xFF8B5CF6).withOpacity(0.1),
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withOpacity(0.3),
+          color: const Color(0xFF6366F1).withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -62,7 +97,7 @@ class GearDetailPage extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: const Color(0xFF3B82F6)),
+            Icon(icon, size: 14, color: const Color(0xFF6366F1)),
             const SizedBox(width: 6),
           ],
           Text(
@@ -70,7 +105,7 @@ class GearDetailPage extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF1E40AF),
+              color: const Color(0xFF4338CA),
             ),
           ),
         ],
@@ -108,7 +143,9 @@ class GearDetailPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 18, color: Colors.white),
@@ -139,7 +176,14 @@ class GearDetailPage extends StatelessWidget {
       width: double.infinity,
       height: 280,
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF6366F1).withOpacity(0.1),
+            const Color(0xFF8B5CF6).withOpacity(0.1),
+          ],
+        ),
         borderRadius: BorderRadius.circular(24),
       ),
       child: const Center(
@@ -168,55 +212,69 @@ class GearDetailPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: Text(
-          'Gear Detail',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ═══════════════════════════════════════════════════════════
-            // IMAGE SECTION
-            // ═══════════════════════════════════════════════════════════
-            Container(
-              width: double.infinity,
+      body: CustomScrollView(
+        slivers: [
+          // ═══════════════════════════════════════════════════════════
+          // APP BAR
+          // ═══════════════════════════════════════════════════════════
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
+                color: Colors.white.withOpacity(0.9),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Hero(
-                  tag: 'gear-${datum.id}',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: imageUrl != null
-                        ? Image.network(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 280,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _placeholderImage(),
-                          )
-                        : _placeholderImage(),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Hero(
+                tag: 'gear-${datum.id}',
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFF9FAFB), Colors.white],
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: imageUrl != null
+                          ? Image.network(
+                              imageUrl,
+                              width: double.infinity,
+                              height: 280,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _placeholderImage(),
+                            )
+                          : _placeholderImage(),
+                    ),
                   ),
                 ),
               ),
             ),
+          ),
 
-            Padding(
+          // ═══════════════════════════════════════════════════════════
+          // CONTENT
+          // ═══════════════════════════════════════════════════════════
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,12 +288,12 @@ class GearDetailPage extends StatelessWidget {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3B82F6).withOpacity(0.3),
+                          color: const Color(0xFF6366F1).withOpacity(0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -244,14 +302,20 @@ class GearDetailPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          datum.name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                datum.name,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  height: 1.2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -506,12 +570,12 @@ class GearDetailPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF3B82F6).withOpacity(0.4),
+                                color: const Color(0xFF6366F1).withOpacity(0.4),
                                 blurRadius: 15,
                                 offset: const Offset(0, 8),
                               ),
@@ -545,8 +609,8 @@ class GearDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

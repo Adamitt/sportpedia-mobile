@@ -18,10 +18,10 @@ class _GearGuidePageState extends State<GearGuidePage> {
   String? _error;
   List<Datum> _gears = [];
   List<Datum> _filteredGears = [];
-  
+
   String? _selectedSport;
   String? _selectedLevel;
-  
+
   List<String> _availableSports = [];
 
   @override
@@ -40,7 +40,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
       final gears = await GearGuideService.fetchGears();
       setState(() {
         _gears = gears;
-        _availableSports = gears.map((g) => g.sportName).toSet().toList()..sort();
+        _availableSports =
+            gears.map((g) => g.sportName).toSet().toList()..sort();
         _applyFilters();
       });
     } catch (e) {
@@ -56,12 +57,58 @@ class _GearGuidePageState extends State<GearGuidePage> {
 
   void _applyFilters() {
     _filteredGears = _gears.where((gear) {
-      bool matchSport = _selectedSport == null || 
+      final matchSport = _selectedSport == null ||
           gear.sportName.toLowerCase() == _selectedSport!.toLowerCase();
-      bool matchLevel = _selectedLevel == null || 
-          gear.levelDisplay == _selectedLevel;
+      final matchLevel =
+          _selectedLevel == null || gear.levelDisplay == _selectedLevel;
       return matchSport && matchLevel;
     }).toList();
+  }
+
+  Future<void> _confirmDelete(Datum gear) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete gear?'),
+        content: Text('Yakin mau hapus "${gear.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      await _deleteGear(gear);
+    }
+  }
+
+  Future<void> _deleteGear(Datum gear) async {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Deleting gear...')),
+    );
+
+    try {
+      await GearGuideService.deleteGear(gear.id); // SESUAIKAN TYPE id
+      await _loadGears();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gear deleted')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete: $e')),
+      );
+    }
   }
 
   void _showFilterSheet() {
@@ -69,176 +116,211 @@ class _GearGuidePageState extends State<GearGuidePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.9, // <= batasi tinggi sheet (biar nggak overflow)
+        child: StatefulBuilder(
+          builder: (context, setModalState) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
-              ),
-              const SizedBox(height: 20),
-              
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Filter Gear',
-                      style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        setModalState(() {
-                          _selectedSport = null;
-                          _selectedLevel = null;
-                        });
-                        setState(() {
-                          _applyFilters();
-                        });
-                      },
-                      child: Text(
-                        'Reset',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF3B82F6),
+                    const SizedBox(height: 20),
+
+                    // Header + Reset
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Filter Gear',
+                            style: GoogleFonts.poppins(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                _selectedSport = null;
+                                _selectedLevel = null;
+                              });
+                              setState(() {
+                                _applyFilters();
+                              });
+                            },
+                            child: Text(
+                              'Reset',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Sport Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sport Type',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildChip(
+                                'All',
+                                _selectedSport == null,
+                                () {
+                                  setModalState(() => _selectedSport = null);
+                                  setState(() => _applyFilters());
+                                },
+                              ),
+                              ..._availableSports.map(
+                                (sport) => _buildChip(
+                                  sport,
+                                  _selectedSport == sport,
+                                  () {
+                                    setModalState(() => _selectedSport = sport);
+                                    setState(() => _applyFilters());
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Level Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Skill Level',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildChip(
+                                'All',
+                                _selectedLevel == null,
+                                () {
+                                  setModalState(() => _selectedLevel = null);
+                                  setState(() => _applyFilters());
+                                },
+                              ),
+                              _buildChip(
+                                'Pemula',
+                                _selectedLevel == 'Pemula',
+                                () {
+                                  setModalState(
+                                      () => _selectedLevel = 'Pemula');
+                                  setState(() => _applyFilters());
+                                },
+                              ),
+                              _buildChip(
+                                'Menengah',
+                                _selectedLevel == 'Menengah',
+                                () {
+                                  setModalState(
+                                      () => _selectedLevel = 'Menengah');
+                                  setState(() => _applyFilters());
+                                },
+                              ),
+                              _buildChip(
+                                'Profesional',
+                                _selectedLevel == 'Profesional',
+                                () {
+                                  setModalState(
+                                      () => _selectedLevel = 'Profesional');
+                                  setState(() => _applyFilters());
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Button Show Results
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3B82F6),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Show ${_filteredGears.length} Results',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ),
+
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
-              
-              const SizedBox(height: 24),
-              
-              // Sport Filter
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sport Type',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildChip('All', _selectedSport == null, () {
-                          setModalState(() => _selectedSport = null);
-                          setState(() => _applyFilters());
-                        }),
-                        ..._availableSports.map((sport) => _buildChip(
-                          sport,
-                          _selectedSport == sport,
-                          () {
-                            setModalState(() => _selectedSport = sport);
-                            setState(() => _applyFilters());
-                          },
-                        )),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Level Filter
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Skill Level',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildChip('All', _selectedLevel == null, () {
-                          setModalState(() => _selectedLevel = null);
-                          setState(() => _applyFilters());
-                        }),
-                        _buildChip('Pemula', _selectedLevel == 'Pemula', () {
-                          setModalState(() => _selectedLevel = 'Pemula');
-                          setState(() => _applyFilters());
-                        }),
-                        _buildChip('Menengah', _selectedLevel == 'Menengah', () {
-                          setModalState(() => _selectedLevel = 'Menengah');
-                          setState(() => _applyFilters());
-                        }),
-                        _buildChip('Profesional', _selectedLevel == 'Profesional', () {
-                          setModalState(() => _selectedLevel = 'Profesional');
-                          setState(() => _applyFilters());
-                        }),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Show ${_filteredGears.length} Results',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),
@@ -327,7 +409,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -357,7 +440,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   IconButton(
@@ -378,11 +462,14 @@ class _GearGuidePageState extends State<GearGuidePage> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.white, size: 28),
+                    icon: const Icon(Icons.add_circle,
+                        color: Colors.white, size: 28),
                     onPressed: () async {
                       final res = await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const GearFormPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const GearFormPage(),
+                        ),
                       );
                       if (res == true) _loadGears();
                     },
@@ -399,7 +486,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
           child: GestureDetector(
             onTap: _showFilterSheet,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(16),
@@ -422,7 +510,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
                   if (_selectedSport != null || _selectedLevel != null)
                     Container(
                       margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFF3B82F6),
                         borderRadius: BorderRadius.circular(8),
@@ -437,7 +526,8 @@ class _GearGuidePageState extends State<GearGuidePage> {
                       ),
                     ),
                   const Spacer(),
-                  const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+                  const Icon(Icons.keyboard_arrow_down,
+                      color: Color(0xFF64748B)),
                 ],
               ),
             ),
@@ -512,12 +602,14 @@ class _GearGuidePageState extends State<GearGuidePage> {
                           icon: const Icon(Icons.refresh),
                           label: Text(
                             'Clear Filters',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF3B82F6),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -529,23 +621,35 @@ class _GearGuidePageState extends State<GearGuidePage> {
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  padding:
+                      const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   itemCount: _filteredGears.length,
                   itemBuilder: (context, i) {
                     final gear = _filteredGears[i];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: GearCard(
-                        datum: gear,
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GearCard(
+                        datum: gear, // Parameter wajib
                         onTap: () {
-                          Navigator.push(
+                        Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => GearDetailPage(datum: gear),
+                            builder: (_) => GearDetailPage(datum: gear),
                             ),
-                          );
+                        );
                         },
-                      ),
+                        // ====== EDIT & DELETE DARI CARD ======
+                        onEdit: () async {
+                        final res = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                            builder: (_) => GearFormPage(gear: gear), // PASS gear object untuk edit mode
+                            ),
+                        );
+                        if (res == true) _loadGears();
+                        },
+                        onDelete: () => _confirmDelete(gear),
+                    ),
                     );
                   },
                 ),
