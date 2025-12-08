@@ -179,53 +179,58 @@ class ForumFormPageState extends State<ForumFormPage> {
                   ),
                 ),
 
-                // === Tombol Simpan ===
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.indigo),
+                // === Actions: Cancel & Create ===
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
                       ),
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          final response = await request.postJson(
-                            "http://localhost:8000/forum/create-forum-flutter/",
-                            jsonEncode({
-                              "title": _title,
-                              "content": _content,
-                              "sport": _sport,
-                              "sportSlug": _sport,
-                              "tags": _tags,
-                            }),
-                          );
-                          if (context.mounted) {
-                            if (response['status'] == 'success') {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("News successfully saved!"),
-                              ));
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ForumEntryListPage()),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Something went wrong, please try again."),
-                              ));
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.indigo),
+                        ),
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            final response = await request.postJson(
+                              "http://localhost:8000/forum/create-forum-flutter/",
+                              jsonEncode({
+                                "title": _title,
+                                "content": _content,
+                                "sport": _sport,
+                                "sportSlug": _sport,
+                                "tags": _tags,
+                              }),
+                            );
+                            if (context.mounted) {
+                              if (response['status'] == 'success') {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Post successfully created!")),
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ForumEntryListPage()),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Something went wrong, please try again.")),
+                                );
+                              }
                             }
                           }
-                        }
-                      },
-                      child: const Text(
-                        "Save",
-                        style: TextStyle(color: Colors.white),
+                        },
+                        child: const Text(
+                          "Create Post",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],

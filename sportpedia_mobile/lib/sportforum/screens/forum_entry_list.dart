@@ -6,6 +6,7 @@ import 'package:sportpedia_mobile/sportforum/widgets/forum_entry_card.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart' as pbp;
 import 'package:sportpedia_mobile/sportforum/screens/forum_detail.dart';
+import 'package:sportpedia_mobile/sportforum/screens/forum_edit_form.dart';
 
 const Map<String, String> _sportsCategory = {
   'All Sports': '',
@@ -168,6 +169,45 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                 itemBuilder: (_, index) => ForumEntryCard(
                   forum: snapshot.data![index],
                   currentUsername: currentUsername,
+                  onLike: () async {
+                    try {
+                      await request.post(
+                        'http://localhost:8000/forum/post/${snapshot.data![index].id}/like',
+                        {},
+                      );
+                    } finally {
+                      setState(() {});
+                    }
+                  },
+                  onEdit: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ForumEditPage(
+                          forum: snapshot.data![index],
+                          request: request,
+                        ),
+                      ),
+                    );
+                  },
+                  onDelete: () async {
+                    try {
+                      await request.post(
+                        'http://localhost:8000/forum/post/${snapshot.data![index].id}/delete',
+                        {},
+                      );
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Post deleted')), 
+                      );
+                      setState(() {});
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Delete failed: $e')),
+                      );
+                    }
+                  },
                   onTap: () {
                     
                     Navigator.push(
@@ -175,6 +215,7 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                       MaterialPageRoute(
                         builder: (context) => ForumDetailPage(
                           forum: snapshot.data![index],
+                          request: request,
                         ),
                       ),
                     );

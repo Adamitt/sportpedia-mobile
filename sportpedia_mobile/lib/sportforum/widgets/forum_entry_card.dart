@@ -7,6 +7,7 @@ class ForumEntryCard extends StatelessWidget {
   final String? currentUsername;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final Future<void> Function()? onLike;
 
   const ForumEntryCard({
     super.key,
@@ -15,6 +16,7 @@ class ForumEntryCard extends StatelessWidget {
     this.currentUsername,
     this.onEdit,
     this.onDelete,
+    this.onLike,
   });
 
   @override
@@ -201,8 +203,10 @@ class ForumEntryCard extends StatelessWidget {
                       children: [
                         // ❤️ LIKE BUTTON
                         InkWell(
-                          onTap: () {
-                            // TODO: Tambahkan fungsi like
+                          onTap: () async {
+                            if (onLike != null) {
+                              await onLike!();
+                            }
                           },
                           child: Row(
                             children: [
