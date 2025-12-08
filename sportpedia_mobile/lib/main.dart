@@ -1,4 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+
+// Import screens dari accounts
+import 'accounts/screens/login.dart';
+import 'accounts/screens/register.dart';
+
+// Import screens dari profile_app
+import 'profile_app/screens/profile_screen.dart';
+import 'profile_app/screens/activity_history_screen.dart';
+import 'profile_app/screens/account_settings_screen.dart';
+
+// Import screens dari admin_sportpedia
+import 'admin_sportpedia/screens/admin_dashboard_screen.dart';
+import 'admin_sportpedia/screens/manage_admin_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,155 +22,207 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return Provider(
+      create: (_) => CookieRequest(),
+      child: MaterialApp(
+        title: 'SportPedia',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1E3A8A),
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
+        ),
+        initialRoute: '/login',
+        onGenerateRoute: (settings) {
+          // Route utama ("/") dengan argumen
+          if (settings.name == '/') {
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (context) => HomePage(
+                isAdmin: args?['isAdmin'] ?? false,
+                username: args?['username'] ?? '',
+              ),
+            );
+          }
+
+          // Route biasa
+          switch (settings.name) {
+            case '/login':
+              return MaterialPageRoute(builder: (_) => const LoginPage());
+            case '/register':
+              return MaterialPageRoute(builder: (_) => const RegisterPage());
+            case '/profile':
+              return MaterialPageRoute(builder: (_) => const ProfileScreen());
+            case '/activity-history':
+              return MaterialPageRoute(
+                builder: (_) => const ActivityHistoryScreen(),
+              );
+            case '/settings':
+              return MaterialPageRoute(
+                builder: (_) => const AccountSettingsScreen(),
+              );
+            case '/admin':
+              return MaterialPageRoute(
+                builder: (_) => const AdminDashboardScreen(),
+              );
+            case '/manage-admin':
+              return MaterialPageRoute(
+                builder: (_) => const ManageAdminScreen(),
+              );
+            default:
+              return MaterialPageRoute(builder: (_) => const LoginPage());
+          }
+        },
       ),
-      debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
     );
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+// ============================================================
+// HOME PAGE - Simple Navigation with Admin Support
+// ============================================================
+class HomePage extends StatefulWidget {
+  final bool isAdmin;
+  final String username;
+
+  const HomePage({super.key, this.isAdmin = false, this.username = ''});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const MyHomePage(
-            title: 'Flutter Demo Home Page',
-          ),
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  // Halaman-halaman di bottom nav
+  List<Widget> get _pages {
+    final basePages = <Widget>[
+      const PlaceholderPage(title: 'Beranda', icon: Icons.home),
+      const PlaceholderPage(
+        title: 'Pustaka Olahraga',
+        icon: Icons.sports_soccer,
+      ),
+      const PlaceholderPage(
+        title: 'Galeri Video',
+        icon: Icons.video_library,
+      ),
+      const PlaceholderPage(
+        title: 'Forum',
+        icon: Icons.forum,
+      ),
+      const ProfileScreen(), // modul profil
+    ];
+
+    // Kalau admin, tambahin halaman admin
+    if (widget.isAdmin) {
+      basePages.add(const AdminDashboardScreen());
+    }
+
+    return basePages;
+  }
+
+  // Item-item di bottom nav bar
+  List<NavigationDestination> get _destinations {
+    final baseDestinations = <NavigationDestination>[
+      const NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Beranda',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.sports_soccer_outlined),
+        selectedIcon: Icon(Icons.sports_soccer),
+        label: 'Olahraga',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.video_library_outlined),
+        selectedIcon: Icon(Icons.video_library),
+        label: 'Video',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.forum_outlined),
+        selectedIcon: Icon(Icons.forum),
+        label: 'Forum',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person),
+        label: 'Profil',
+      ),
+    ];
+
+    if (widget.isAdmin) {
+      baseDestinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.admin_panel_settings_outlined),
+          selectedIcon: Icon(Icons.admin_panel_settings),
+          label: 'Admin',
         ),
       );
-    });
+    }
+
+    return baseDestinations;
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        // Keep the splash lightweight so it shows instantly.
-        child: Image(
-          image: AssetImage('assets/images/sportpedia_logo.png'),
-          width: 180,
-        ),
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: _destinations,
       ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
+// ============================================================
+// PLACEHOLDER PAGE - Untuk modul teman
+// ============================================================
+class PlaceholderPage extends StatelessWidget {
   final String title;
+  final IconData icon;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  const PlaceholderPage({super.key, required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(title),
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white,
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
+          children: [
+            Icon(icon, size: 80, color: Colors.grey[300]),
+            const SizedBox(height: 16),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Halaman ini masih dalam pengembangan.',
+              style: TextStyle(fontSize: 16),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
