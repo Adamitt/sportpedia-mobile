@@ -611,6 +611,9 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
                           child: Image.network(
                             testimonial.imageUrl,
                             fit: BoxFit.contain,
+                            headers: const {
+                              'Accept': 'image/*',
+                            },
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
                               return Container(
@@ -628,13 +631,28 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
                               );
                             },
                             errorBuilder: (context, error, stackTrace) {
+                              print('Error loading testimonial image: $error');
+                              print('Image URL: ${testimonial.imageUrl}');
                               return Container(
                                 color: Colors.grey.shade200,
                                 child: Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey.shade400,
-                                    size: 36,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.grey.shade400,
+                                        size: 36,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Gambar tidak bisa dimuat',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
