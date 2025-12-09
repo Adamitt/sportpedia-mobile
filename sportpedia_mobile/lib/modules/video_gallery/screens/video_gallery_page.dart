@@ -287,9 +287,9 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+        children: [
                       // Play Icon - Above title (Match Django) - Single Circle Only
-                      Container(
+          Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
@@ -395,7 +395,7 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
             child: Container(
               color: bgGray,
               padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-              child: Column(
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Search Bar - Centered, Match Django
@@ -466,11 +466,11 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                     builder: (context, snapshot) {
                       final videoCount = snapshot.hasData ? snapshot.data!.length : 0;
                       return Column(
-                        children: [
-                          Row(
-                            children: [
+              children: [
+                Row(
+                  children: [
                               // All Sports Dropdown
-                              Expanded(
+                    Expanded(
                                 child: _buildDropdownFilter(
                                   label: (_tempSportId ?? _selectedSportId) == null 
                                       ? 'All Sports' 
@@ -486,20 +486,20 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                                       ? 'Difficulty Level' 
                                       : _difficulties.firstWhere((d) => d['value'] == (_tempDifficulty ?? _selectedDifficulty))['label'] as String,
                                   onTap: () => _showDifficultyFilter(),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                               // Most Popular Dropdown
-                              Expanded(
+                    Expanded(
                                 child: _buildDropdownFilter(
                                   label: _sortBy == 'popular' ? 'Most Popular' :
                                          _sortBy == 'newest' ? 'Newest First' :
                                          _sortBy == 'rating' ? 'Highest Rating' :
                                          'Most Views',
                                   onTap: () => _showSortOptions(),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                               // Apply Filters Button with Blue Gradient
                               InkWell(
                                 onTap: _applyFilter,
@@ -545,11 +545,11 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   color: textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
                       );
                     },
                   ),
@@ -600,7 +600,7 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                           const SizedBox(height: 8),
                           Text(
                             '${snapshot.error}',
-                            textAlign: TextAlign.center,
+                      textAlign: TextAlign.center,
                             style: TextStyle(
                               color: textSecondary,
                               fontFamily: 'Roboto',
@@ -664,7 +664,7 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final video = videos[index];
+                    final video = videos[index];
                       return _buildVideoCard(video);
                     },
                     childCount: videos.length,
@@ -700,7 +700,7 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                 )
               : null,
           color: isActive ? null : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8),
           boxShadow: isActive
               ? [
                   BoxShadow(
@@ -999,21 +999,21 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
               decoration: BoxDecoration(
                 color: bgGray,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-            ),
-          ),
+                            ),
+                          ),
+                        ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                   Container(height: 20, width: double.infinity, color: bgGray),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
+                            Row(
+                              children: [
                       Container(height: 24, width: 80, color: bgGray),
-                      const SizedBox(width: 8),
+                                const SizedBox(width: 8),
                       Container(height: 24, width: 80, color: bgGray),
                     ],
                   ),
@@ -1023,10 +1023,10 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                     children: [
                       Container(height: 14, width: 60, color: bgGray),
                       Container(height: 14, width: 40, color: bgGray),
-                    ],
-                  ),
-                ],
-              ),
+                              ],
+                            ),
+                          ],
+                        ),
             ),
           ),
         ],
@@ -1036,14 +1036,14 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   
   Widget _buildVideoCard(Video video) {
     return _Animated3DCard(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VideoDetailPage(videoId: video.id),
-          ),
-        );
-      },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoDetailPage(videoId: video.id),
+                            ),
+                          );
+                        },
       child: Container(
         decoration: BoxDecoration(
           color: cardWhite,

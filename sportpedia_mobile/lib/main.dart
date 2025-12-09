@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       },
       child: MaterialApp(
         title: 'SportPedia',
-        theme: ThemeData(
+      theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1C3264)),
           fontFamily: 'Roboto', // Match landing page font
           textTheme: const TextTheme(

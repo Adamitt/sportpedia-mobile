@@ -234,30 +234,30 @@ class VideoService {
         }
       }
       
-      final response = await request.post(
-        url.toString(),
-        jsonEncode({
-          'text': text,
-          if (rating != null) 'rating': rating,
-        }),
-      );
+    final response = await request.post(
+      url.toString(),
+      jsonEncode({
+        'text': text,
+        if (rating != null) 'rating': rating,
+      }),
+    );
 
       print('[DEBUG] VideoService.submitComment - Response type: ${response.runtimeType}');
       print('[DEBUG] VideoService.submitComment - Response: $response');
 
-      // CookieRequest.post() returns Map<String, dynamic>
-      if (response is Map<String, dynamic>) {
-        // Check for error
-        if (response.containsKey('error') || response.containsKey('detail')) {
+    // CookieRequest.post() returns Map<String, dynamic>
+    if (response is Map<String, dynamic>) {
+      // Check for error
+      if (response.containsKey('error') || response.containsKey('detail')) {
           final errorMsg = response['error'] ?? response['detail'] ?? 'Unknown error';
           print('[DEBUG] VideoService.submitComment - Error: $errorMsg');
           print('[DEBUG] VideoService.submitComment - Full error response: $response');
           throw Exception('Gagal menambah komentar: $errorMsg');
-        }
-        // Success response
-        return Comment.fromJson(response);
+      }
+      // Success response
+      return Comment.fromJson(response);
       } else if (response is String) {
-        // If it's a string, try to parse it
+      // If it's a string, try to parse it
         try {
           final Map<String, dynamic> data = jsonDecode(response) as Map<String, dynamic>;
           if (data.containsKey('error') || data.containsKey('detail')) {
@@ -266,7 +266,7 @@ class VideoService {
             print('[DEBUG] VideoService.submitComment - Full error response: $data');
             throw Exception('Gagal menambah komentar: $errorMsg');
           }
-          return Comment.fromJson(data);
+      return Comment.fromJson(data);
         } catch (e) {
           print('[DEBUG] VideoService.submitComment - Parse error: $e');
           throw Exception('Gagal menambah komentar: Response tidak valid - $response');
