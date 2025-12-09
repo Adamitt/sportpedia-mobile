@@ -293,12 +293,10 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      // Untuk Chrome/Web: http://127.0.0.1:8000
+      // Untuk Chrome/Web: http://localhost:8000
       // Untuk Android Emulator: http://10.0.2.2:8000
-      // Menggunakan accounts app endpoint (lebih konsisten)
-      // Endpoint ini menggunakan session Django yang sama dengan web app
       final response = await request.login(
-        "http://127.0.0.1:8000/accounts/api/login/",
+        "http://localhost:8000/accounts/flutter-login/",
         {'username': username, 'password': password},
       );
 
@@ -307,27 +305,19 @@ class _LoginPageState extends State<LoginPage> {
           _isLoading = false;
         });
 
-        // Response format dari Fadhil: ada field 'status'
-        bool status = response['status'] ?? request.loggedIn;
-        String message = response['message'] ?? 'Login berhasil';
-        String uname = response['username'] ?? username;
-        bool isStaff = response['is_staff'] ?? false;
-        bool isSuperuser = response['is_superuser'] ?? false;
-        bool isAdmin = isStaff || isSuperuser;
+        if (request.loggedIn) {
+          String message = response['message'] ?? 'Login berhasil';
+          String uname = response['username'] ?? username;
+          bool isStaff = response['is_staff'] ?? false;
+          bool isSuperuser = response['is_superuser'] ?? false;
+          bool isAdmin = isStaff || isSuperuser;
 
-        if (status && request.loggedIn) {
-          // Navigate kembali ke halaman sebelumnya (biasanya detail video)
-          // atau ke home jika tidak ada halaman sebelumnya
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context, true); // Return true untuk indicate login success
-          } else {
-            // Jika tidak ada halaman sebelumnya, navigate ke home
-            Navigator.pushReplacementNamed(
-              context,
-              '/',
-              arguments: {'isAdmin': isAdmin, 'username': uname},
-            );
-          }
+          // Navigate dengan membawa info admin status
+          Navigator.pushReplacementNamed(
+            context,
+            '/',
+            arguments: {'isAdmin': isAdmin, 'username': uname},
+          );
 
           _showSnackBar(
             isAdmin
@@ -337,9 +327,8 @@ class _LoginPageState extends State<LoginPage> {
           );
         } else {
           _showSnackBar(
-            message.isNotEmpty
-                ? message
-                : 'Login gagal. Periksa username dan password.',
+            response['message'] ??
+                'Login gagal. Periksa username dan password.',
             isError: true,
           );
         }

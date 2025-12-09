@@ -332,7 +332,7 @@ class _RegisterPageState extends State<RegisterPage> {
       // Untuk Chrome/Web: http://localhost:8000
       // Untuk Android Emulator: http://10.0.2.2:8000
       final response = await http.post(
-        Uri.parse('http://localhost:8000/accounts/api/register/'),
+        Uri.parse('http://localhost:8000/accounts/register/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': _usernameController.text.trim(),
