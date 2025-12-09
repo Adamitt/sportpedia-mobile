@@ -209,6 +209,9 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 if (value.trim().length < 5) {
                   return 'Judul minimal 5 karakter';
                 }
+                if (value.trim().length > 200) {
+                  return 'Judul maksimal 200 karakter';
+                }
                 return null;
               },
             ),
@@ -229,6 +232,9 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 }
                 if (value.trim().length < 20) {
                   return 'Deskripsi minimal 20 karakter';
+                }
+                if (value.trim().length > 2000) {
+                  return 'Deskripsi maksimal 2000 karakter';
                 }
                 return null;
               },
@@ -295,8 +301,13 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 if (value == null || value.trim().isEmpty) {
                   return 'URL video harus diisi';
                 }
-                if (!value.contains('youtube.com') && !value.contains('youtu.be')) {
-                  return 'URL harus dari YouTube';
+                final url = value.trim();
+                // Validasi format URL YouTube
+                final youtubeRegex = RegExp(
+                  r'^(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w-]+',
+                );
+                if (!youtubeRegex.hasMatch(url)) {
+                  return 'URL harus valid dari YouTube (youtube.com atau youtu.be)';
                 }
                 return null;
               },
@@ -311,6 +322,20 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 hintText: 'Akan diisi otomatis dari YouTube jika kosong',
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  final url = value.trim();
+                  // Validasi format URL
+                  final urlRegex = RegExp(
+                    r'^https?://.+\.(jpg|jpeg|png|gif|webp)',
+                    caseSensitive: false,
+                  );
+                  if (!urlRegex.hasMatch(url)) {
+                    return 'URL thumbnail harus valid (http/https dengan ekstensi gambar)';
+                  }
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
@@ -322,6 +347,17 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 hintText: 'Nama instruktur',
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  if (value.trim().length < 2) {
+                    return 'Nama instruktur minimal 2 karakter';
+                  }
+                  if (value.trim().length > 100) {
+                    return 'Nama instruktur maksimal 100 karakter';
+                  }
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
@@ -333,6 +369,17 @@ class _VideoFormPageState extends State<VideoFormPage> {
                 hintText: 'Format: MM:SS (contoh: 05:30)',
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  final duration = value.trim();
+                  // Validasi format MM:SS atau HH:MM:SS
+                  final durationRegex = RegExp(r'^(\d{1,2}:)?[0-5]?\d:[0-5]\d$');
+                  if (!durationRegex.hasMatch(duration)) {
+                    return 'Format durasi harus MM:SS atau HH:MM:SS (contoh: 05:30 atau 1:05:30)';
+                  }
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
