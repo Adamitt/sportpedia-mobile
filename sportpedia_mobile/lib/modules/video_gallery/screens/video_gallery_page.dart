@@ -29,6 +29,9 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   String? _tempDifficulty;
   // Note: Sort is applied immediately, no temp state needed
   
+  // Admin status
+  bool? _isAdmin;
+  
   // Color scheme - Professional & Modern
   static const Color primaryBlue = Color(0xFF1C3264);
   static const Color primaryBlueDark = Color(0xFF0F1F3D);
@@ -95,6 +98,43 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   void initState() {
     super.initState();
     _loadVideos();
+    _checkAdminStatus();
+  }
+  
+  Future<void> _checkAdminStatus() async {
+    final request = Provider.of<CookieRequest>(context, listen: false);
+    if (!request.loggedIn) {
+      setState(() {
+        _isAdmin = false;
+      });
+      return;
+    }
+    
+    try {
+      // Use CookieRequest to get user info (handles cookies automatically)
+      final response = await request.get('http://localhost:8000/accounts/api/user-info/');
+      
+      if (response is Map<String, dynamic>) {
+        if (response['authenticated'] == true) {
+          setState(() {
+            _isAdmin = (response['is_staff'] == true) || (response['is_superuser'] == true);
+          });
+        } else {
+          setState(() {
+            _isAdmin = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isAdmin = false;
+        });
+      }
+    } catch (e) {
+      print('[DEBUG] Error checking admin status: $e');
+      setState(() {
+        _isAdmin = false;
+      });
+    }
   }
   
   @override
@@ -140,117 +180,10 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgGray,
-      appBar: AppBar(
-        backgroundColor: cardWhite,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: Row(
-          children: [
-            // Logo - Match Django navbar
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: primaryBlue,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.sports_soccer, color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 12),
-            // Title - Match Django style
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'SPORT',
-                    style: TextStyle(
-                      color: primaryBlue,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'PEDIA',
-                    style: TextStyle(
-                      color: const Color(0xFFB91C1C), // Red color from Django
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          // Admin button (only show if logged in as admin)
-          Consumer<CookieRequest>(
-            builder: (context, request, child) {
-              // TODO: Check if user is admin/staff
-              // For now, show admin button if logged in
-              if (request.loggedIn) {
-                return IconButton(
-                  icon: Icon(Icons.admin_panel_settings, color: primaryBlue, size: 24),
-                  tooltip: 'Admin Panel',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminVideoListPage(),
-                      ),
-                    );
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          // Search Icon Button - Opens search in body
-          IconButton(
-            icon: Icon(Icons.search, color: primaryBlue, size: 24),
-            onPressed: () {
-              // Scroll to search section
-              _scrollController.animateTo(
-                380,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            decoration: BoxDecoration(
-              color: cardWhite,
-              border: Border(
-                bottom: BorderSide(color: borderColor, width: 1),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildNavItem('Sports Library', Icons.library_books, () {}),
-                  const SizedBox(width: 24),
-                  _buildNavItem('Community', Icons.people, () {}),
-                  const SizedBox(width: 24),
-                  _buildNavItem('Gear Guide', Icons.shopping_bag, () {}),
-                  const SizedBox(width: 24),
-                  _buildNavItem('Video Gallery', Icons.video_library, () {}, isActive: true),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: CustomScrollView(
+      appBar: null,
+      body: Stack(
+        children: [
+          CustomScrollView(
         controller: _scrollController,
         slivers: [
           // Hero Section - Match Django Design
@@ -679,58 +612,35 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
           ),
         ],
       ),
-    );
-  }
-  
-  Widget _buildNavItem(String label, IconData icon, VoidCallback onTap, {bool isActive = false}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: isActive
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1C3264),
-                    Color(0xFF2D4A7C),
-                    Color(0xFF3D5A94),
-                  ],
-                )
-              : null,
-          color: isActive ? null : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: primaryBlue.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isActive ? Colors.white : Colors.grey[700],
+          // Floating Admin Button (only show if logged in as admin)
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Consumer<CookieRequest>(
+              builder: (context, request, child) {
+                // Only show admin button if user is logged in AND is admin
+                if (request.loggedIn && _isAdmin == true) {
+                  return FloatingActionButton.small(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdminVideoListPage(),
+                        ),
+                      );
+                      // Refresh video list when returning from admin page
+                      // This ensures list is updated if videos were modified
+                      _loadVideos();
+                    },
+                    backgroundColor: primaryBlue,
+                    child: const Icon(Icons.admin_panel_settings, color: Colors.white),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey[700],
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                fontSize: 14,
-                fontFamily: 'Roboto',
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1036,14 +946,17 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   
   Widget _buildVideoCard(Video video) {
     return _Animated3DCard(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VideoDetailPage(videoId: video.id),
-                            ),
-                          );
-                        },
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VideoDetailPage(videoId: video.id),
+            ),
+          );
+          // Always refresh video list when returning from detail page
+          // This ensures list is updated if video was modified
+          _loadVideos();
+        },
       child: Container(
         decoration: BoxDecoration(
           color: cardWhite,
@@ -1206,6 +1119,66 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                   ),
                   
                   const SizedBox(height: 10),
+                  
+                  // Instructor/Coach (if available)
+                  if (video.instructor != null && video.instructor!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, size: 14, color: textSecondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              video.instructor!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                                fontFamily: 'Roboto',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  
+                  // Tags (if available)
+                  if (video.tags != null && video.tags!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: video.tags!.take(3).map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: bgGray,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: borderColor,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              tag,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                   
                   // Stats - Lebih besar
                   Row(

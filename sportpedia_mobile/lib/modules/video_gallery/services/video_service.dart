@@ -310,35 +310,211 @@ class VideoService {
     }
   }
 
+  /// POST /videos/comment/{comment_id}/helpful/ - Mark comment as helpful
+  /// [request] - CookieRequest untuk authenticated POST request
+  static Future<int> markCommentHelpful({
+    required CookieRequest request,
+    required int commentId,
+  }) async {
+    final url = Uri.parse('$baseUrl/videos/comment/$commentId/helpful/');
+    
+    try {
+      // For Flutter Web, use XMLHttpRequest directly with withCredentials
+      if (kIsWeb) {
+        try {
+          final xhr = html.HttpRequest();
+          final completer = Completer<int>();
+          
+          xhr.open('POST', url.toString(), async: true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.withCredentials = true;
+          
+          xhr.onLoad.listen((event) {
+            if (xhr.status == 200 || xhr.status == 201) {
+              try {
+                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+                if (data['success'] == true) {
+                  completer.complete(data['helpful_count'] as int);
+                } else {
+                  completer.completeError(Exception(data['error'] ?? 'Failed to mark as helpful'));
+                }
+              } catch (e) {
+                completer.completeError(Exception('Gagal memparse response: $e'));
+              }
+            } else {
+              try {
+                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
+              } catch (e) {
+                completer.completeError(Exception('HTTP ${xhr.status}'));
+              }
+            }
+          });
+          
+          xhr.onError.listen((event) {
+            completer.completeError(Exception('Network error'));
+          });
+          
+          xhr.send('');
+          return await completer.future;
+        } catch (e) {
+          // Fall through to CookieRequest.post() as fallback
+        }
+      }
+      
+      final response = await request.post(
+        url.toString(),
+        '{}',
+      );
+      
+      if (response is Map<String, dynamic>) {
+        if (response.containsKey('error') || response.containsKey('detail')) {
+          throw Exception(response['error'] ?? response['detail'] ?? 'Unknown error');
+        }
+        if (response['success'] == true) {
+          return response['helpful_count'] as int;
+        }
+        throw Exception('Failed to mark as helpful');
+      } else if (response is String) {
+        final data = jsonDecode(response) as Map<String, dynamic>;
+        if (data.containsKey('error')) {
+          throw Exception(data['error'] as String);
+        }
+        if (data['success'] == true) {
+          return data['helpful_count'] as int;
+        }
+        throw Exception('Failed to mark as helpful');
+      } else {
+        throw Exception('Response format tidak dikenali');
+      }
+    } catch (e) {
+      if (e.toString().contains('Already marked')) {
+        throw Exception('Komentar ini sudah ditandai sebagai helpful');
+      }
+      rethrow;
+    }
+  }
+
+  /// POST /videos/api/comment/{comment_id}/reply/ - Reply to a comment
+  /// [request] - CookieRequest WAJIB untuk authenticated POST request
+  static Future<Comment> submitReply({
+    required CookieRequest request,
+    required int commentId,
+    required String text,
+  }) async {
+    if (!request.loggedIn) {
+      throw Exception('Anda harus login terlebih dahulu');
+    }
+    
+    final url = Uri.parse('$baseUrl/videos/api/comment/$commentId/reply/');
+    
+    try {
+      // For Flutter Web, use XMLHttpRequest directly with withCredentials
+      if (kIsWeb) {
+        try {
+          final xhr = html.HttpRequest();
+          final completer = Completer<Comment>();
+          
+          xhr.open('POST', url.toString(), async: true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.withCredentials = true;
+          
+          xhr.onLoad.listen((event) {
+            if (xhr.status == 200 || xhr.status == 201) {
+              try {
+                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+                if (data.containsKey('error')) {
+                  completer.completeError(Exception(data['error'] as String));
+                } else {
+                  completer.complete(Comment.fromJson(data));
+                }
+              } catch (e) {
+                completer.completeError(Exception('Gagal memparse response: $e'));
+              }
+            } else {
+              try {
+                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
+              } catch (e) {
+                completer.completeError(Exception('HTTP ${xhr.status}'));
+              }
+            }
+          });
+          
+          xhr.onError.listen((event) {
+            completer.completeError(Exception('Network error'));
+          });
+          
+          final requestBody = jsonEncode({'text': text});
+          xhr.send(requestBody);
+          return await completer.future;
+        } catch (e) {
+          // Fall through to CookieRequest.post() as fallback
+        }
+      }
+      
+      final response = await request.post(
+        url.toString(),
+        jsonEncode({'text': text}),
+      );
+      
+      if (response is Map<String, dynamic>) {
+        if (response.containsKey('error') || response.containsKey('detail')) {
+          throw Exception(response['error'] ?? response['detail'] ?? 'Unknown error');
+        }
+        return Comment.fromJson(response);
+      } else if (response is String) {
+        final data = jsonDecode(response) as Map<String, dynamic>;
+        if (data.containsKey('error')) {
+          throw Exception(data['error'] as String);
+        }
+        return Comment.fromJson(data);
+      } else {
+        throw Exception('Response format tidak dikenali');
+      }
+    } catch (e) {
+      if (e.toString().contains('login') || e.toString().contains('authenticated')) {
+        throw Exception('Anda harus login terlebih dahulu');
+      }
+      rethrow;
+    }
+  }
+
   // ============================================
   // ADMIN CRUD OPERATIONS
   // ============================================
 
   /// GET /videos/api/sports/ - Get list of sports for dropdown
-  /// For now, we'll get sports from existing videos or use hardcoded list
   static Future<List<Map<String, dynamic>>> fetchSports() async {
-    // Try to get sports from video list API (extract unique sports)
     try {
-      final videos = await fetchVideos();
-      final sportsMap = <int, String>{};
-      for (var video in videos) {
-        // We need to get sport ID from video, but Video model only has sportName
-        // For now, use hardcoded list
+      final uri = Uri.parse('$baseUrl/videos/api/sports/');
+      final response = await http.get(uri);
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+        return data.map((sport) => {
+          'id': sport['id'] as int,
+          'name': sport['name'] as String,
+        }).toList();
+      } else {
+        throw Exception('Gagal memuat daftar olahraga (status ${response.statusCode})');
       }
     } catch (e) {
       print('[DEBUG] VideoService.fetchSports - Error: $e');
+      // Fallback: return hardcoded sports list
+      return [
+        {'id': 1, 'name': 'Bulu Tangkis'},
+        {'id': 2, 'name': 'Yoga'},
+        {'id': 3, 'name': 'Tenis'},
+        {'id': 4, 'name': 'Renang'},
+        {'id': 5, 'name': 'Panahan'},
+        {'id': 6, 'name': 'Lari'},
+        {'id': 7, 'name': 'Basket'},
+        {'id': 8, 'name': 'Futsal'},
+        {'id': 9, 'name': 'Bersepeda'},
+        {'id': 10, 'name': 'Tenis Meja'},
+      ];
     }
-    
-    // Fallback: return hardcoded sports list
-    // TODO: Create proper sports API endpoint or get from video list
-    return [
-      {'id': 1, 'name': 'Bulu Tangkis'},
-      {'id': 2, 'name': 'Renang'},
-      {'id': 3, 'name': 'Basket'},
-      {'id': 4, 'name': 'Sepak Bola'},
-      {'id': 5, 'name': 'Tenis'},
-      {'id': 6, 'name': 'Voli'},
-    ];
   }
 
   /// POST /videos/api/create/ - Create new video (Admin only)
@@ -453,6 +629,9 @@ class VideoService {
     String? duration,
     List<String>? tags,
   }) async {
+    print('[DEBUG] VideoService.updateVideo - loggedIn: ${request.loggedIn}');
+    print('[DEBUG] VideoService.updateVideo - URL: $baseUrl/videos/api/$videoId/update/');
+    
     if (!request.loggedIn) {
       throw Exception('Anda harus login terlebih dahulu');
     }
@@ -462,6 +641,16 @@ class VideoService {
     // For Flutter Web, use XMLHttpRequest with credentials
     if (kIsWeb) {
       try {
+        print('[DEBUG] VideoService.updateVideo - Using XMLHttpRequest for Flutter Web');
+        // Check cookie
+        final cookies = html.document.cookie ?? '';
+        if (cookies.isNotEmpty) {
+          final cookiePreview = cookies.length > 100 ? cookies.substring(0, 100) : cookies;
+          print('[DEBUG] VideoService.updateVideo - Cookies: $cookiePreview...');
+        } else {
+          print('[DEBUG] VideoService.updateVideo - No cookies found');
+        }
+        
         final xhr = html.HttpRequest();
         final completer = Completer<Video>();
         
@@ -470,18 +659,23 @@ class VideoService {
         xhr.withCredentials = true;
         
         xhr.onLoad.listen((event) {
+          print('[DEBUG] VideoService.updateVideo - HTTP status: ${xhr.status}');
           if (xhr.status == 200) {
             try {
               final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+              print('[DEBUG] VideoService.updateVideo - Success response: ${data.keys}');
               completer.complete(Video.fromJson(data));
             } catch (e) {
+              print('[DEBUG] VideoService.updateVideo - Parse error: $e');
               completer.completeError(Exception('Gagal memparse response: $e'));
             }
           } else {
             try {
               final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+              print('[DEBUG] VideoService.updateVideo - Error response: $errorData');
               completer.completeError(Exception('Gagal mengupdate video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
             } catch (e) {
+              print('[DEBUG] VideoService.updateVideo - Error parse error: $e');
               completer.completeError(Exception('Gagal mengupdate video: HTTP ${xhr.status}'));
             }
           }

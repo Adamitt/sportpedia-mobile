@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../theme/app_colors.dart';
 import '../../profile_app/screens/profile_screen.dart';
+
+// Conditional import for web
+import 'dart:html' as html if (dart.library.html) 'dart:html';
 
 class HomeNavBar extends StatefulWidget {
   const HomeNavBar({super.key});
@@ -194,6 +198,13 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                 onPressed: () async {
                                   // Logout
                                   await request.logout("http://localhost:8000/landingpage/api/logout/");
+                                  
+                                  // For Flutter Web, manually clear session cookie
+                                  if (kIsWeb) {
+                                    html.document.cookie = 'sessionid=; Path=/; SameSite=None; Secure=false; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                                    print('[DEBUG] Logout - Cleared session cookie');
+                                  }
+                                  
                                   if (mounted) {
                                     Navigator.pushReplacementNamed(context, '/');
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -299,6 +310,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
       onTap: () {
         if (route == '/gearguide/') {
           Navigator.pushNamed(context, '/gearguide');
+        } else if (route == '/videos/') {
+          // Navigate ke Video Gallery
+          Navigator.pushNamed(context, '/videos');
         } else {
           // Untuk route lain, show coming soon
           ScaffoldMessenger.of(context).showSnackBar(

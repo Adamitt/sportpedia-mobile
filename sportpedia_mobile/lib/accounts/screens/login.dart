@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'register.dart';
+
+// Conditional import for web
+import 'dart:html' as html if (dart.library.html) 'dart:html';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -311,6 +315,14 @@ class _LoginPageState extends State<LoginPage> {
           bool isStaff = response['is_staff'] ?? false;
           bool isSuperuser = response['is_superuser'] ?? false;
           bool isAdmin = isStaff || isSuperuser;
+          
+          // For Flutter Web, manually set session cookie if session_key is provided
+          if (kIsWeb && response['session_key'] != null) {
+            final sessionKey = response['session_key'] as String;
+            // Set cookie manually for Flutter Web
+            html.document.cookie = 'sessionid=$sessionKey; Path=/; SameSite=None; Secure=false; Max-Age=86400';
+            print('[DEBUG] Login - Manually set cookie: sessionid=$sessionKey');
+          }
 
           // Navigate dengan membawa info admin status
           Navigator.pushReplacementNamed(

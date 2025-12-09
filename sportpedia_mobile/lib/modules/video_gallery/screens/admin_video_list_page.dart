@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -17,16 +18,29 @@ class AdminVideoListPage extends StatefulWidget {
 class _AdminVideoListPageState extends State<AdminVideoListPage> {
   late Future<List<Video>> _videosFuture;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
     _videosFuture = VideoService.fetchVideos();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    // Debounce search to avoid too many API calls
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      _refreshVideos();
+    });
   }
 
   void _refreshVideos() {
     setState(() {
-      _videosFuture = VideoService.fetchVideos();
+      final searchQuery = _searchController.text.trim();
+      _videosFuture = VideoService.fetchVideos(
+        search: searchQuery.isNotEmpty ? searchQuery : null,
+      );
     });
   }
 
@@ -135,7 +149,7 @@ class _AdminVideoListPageState extends State<AdminVideoListPage> {
               ),
               onChanged: (value) {
                 setState(() {});
-                // TODO: Implement search
+                // Search is handled by _onSearchChanged listener with debounce
               },
             ),
           ),
@@ -268,6 +282,8 @@ class _AdminVideoListPageState extends State<AdminVideoListPage> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }

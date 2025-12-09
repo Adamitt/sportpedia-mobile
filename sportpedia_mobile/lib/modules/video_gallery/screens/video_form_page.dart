@@ -100,6 +100,20 @@ class _VideoFormPageState extends State<VideoFormPage> {
     });
 
     final request = Provider.of<CookieRequest>(context, listen: false);
+    
+    // Check login status
+    print('[DEBUG] VideoFormPage._submitForm - loggedIn: ${request.loggedIn}');
+    if (!request.loggedIn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Anda harus login terlebih dahulu')),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      return;
+    }
 
     try {
       if (widget.video == null) {
@@ -132,6 +146,7 @@ class _VideoFormPageState extends State<VideoFormPage> {
         }
       } else {
         // Update mode
+        print('[DEBUG] VideoFormPage._submitForm - Updating video ID: ${widget.video!.id}');
         await VideoService.updateVideo(
           request: request,
           videoId: widget.video!.id,
@@ -153,6 +168,7 @@ class _VideoFormPageState extends State<VideoFormPage> {
               ? null
               : _tagsController.text.trim().split(',').map((e) => e.trim()).toList(),
         );
+        print('[DEBUG] VideoFormPage._submitForm - Update successful');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Video berhasil diperbarui')),
@@ -160,10 +176,20 @@ class _VideoFormPageState extends State<VideoFormPage> {
           Navigator.pop(context, true);
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('[DEBUG] VideoFormPage._submitForm - Exception: $e');
+      print('[DEBUG] VideoFormPage._submitForm - StackTrace: $stackTrace');
       if (mounted) {
+        // Extract error message
+        String errorMessage = e.toString();
+        if (errorMessage.contains('Exception: ')) {
+          errorMessage = errorMessage.replaceAll('Exception: ', '');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text('Error: $errorMessage'),
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     } finally {

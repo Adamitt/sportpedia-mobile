@@ -27,6 +27,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   final TextEditingController _commentController = TextEditingController();
   int? _selectedRating;
   bool _isSubmitting = false;
+  final Set<int> _helpfulComments = {}; // Track comments that have been marked as helpful
   
   
   // Color scheme - Match Django
@@ -85,6 +86,160 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     setState(() {
       _commentsFuture = VideoService.fetchComments(widget.videoId);
     });
+  }
+
+  Future<void> _handleHelpful(int commentId) async {
+    // Check if already marked as helpful
+    if (_helpfulComments.contains(commentId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Komentar ini sudah ditandai sebagai helpful'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final request = Provider.of<CookieRequest>(context, listen: false);
+    
+    if (!request.loggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu untuk menandai komentar sebagai helpful'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await VideoService.markCommentHelpful(
+        request: request,
+        commentId: commentId,
+      );
+      
+      setState(() {
+        _helpfulComments.add(commentId);
+      });
+      
+      // Refresh comments to get updated count
+      _refreshComments();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Komentar ditandai sebagai helpful 👍'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menandai komentar: ${e.toString().replaceAll('Exception: ', '')}'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleReply(Comment comment) async {
+    final request = Provider.of<CookieRequest>(context, listen: false);
+    
+    if (!request.loggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu untuk membalas komentar'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final replyController = TextEditingController();
+    bool isSubmitting = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Reply to ${comment.user}'),
+          content: TextField(
+            controller: replyController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: 'Tulis balasan Anda...',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (replyController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Balasan tidak boleh kosong'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() {
+                        isSubmitting = true;
+                      });
+
+                      try {
+                        await VideoService.submitReply(
+                          request: request,
+                          commentId: comment.id,
+                          text: replyController.text.trim(),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          _refreshComments();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Balasan berhasil dikirim'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() {
+                          isSubmitting = false;
+                        });
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Gagal mengirim balasan: ${e.toString().replaceAll('Exception: ', '')}'),
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Send'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    replyController.dispose();
   }
   
   Future<void> _submitComment() async {
@@ -1116,18 +1271,29 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 Row(
                   children: [
                     TextButton.icon(
-                      onPressed: () {},
+                      onPressed: _helpfulComments.contains(comment.id)
+                          ? null
+                          : () => _handleHelpful(comment.id),
                       icon: Icon(
-                        Icons.thumb_up_outlined,
+                        _helpfulComments.contains(comment.id)
+                            ? Icons.thumb_up
+                            : Icons.thumb_up_outlined,
                         size: 16,
-                        color: textSecondary,
+                        color: _helpfulComments.contains(comment.id)
+                            ? primaryBlue
+                            : textSecondary,
                       ),
                       label: Text(
                         '${comment.helpfulCount}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: textSecondary,
+                          color: _helpfulComments.contains(comment.id)
+                              ? primaryBlue
+                              : textSecondary,
                           fontFamily: 'Roboto',
+                          fontWeight: _helpfulComments.contains(comment.id)
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
                       style: TextButton.styleFrom(
@@ -1138,7 +1304,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     ),
                     const SizedBox(width: 16),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () => _handleReply(comment),
                       child: Text(
                         'Reply',
                         style: TextStyle(
@@ -1155,6 +1321,102 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     ),
                   ],
                 ),
+                // Replies Section
+                if (comment.replies.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Vertical line indicator
+                        Container(
+                          width: 2,
+                          height: 8,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 8),
+                        // Replies list
+                        ...comment.replies.map((reply) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Smaller avatar for replies
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFF60A5FA),
+                                      Color(0xFF3B82F6),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    reply.user[0].toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Roboto',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          reply.user,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: textPrimary,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                        Text(
+                                          reply.createdAt,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: textSecondary,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      reply.text,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: textPrimary,
+                                        height: 1.4,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )).toList(),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -9,6 +9,8 @@ class Video {
   final String duration; // misal: "04:21"
   final double rating;
   final int views;
+  final String? instructor; // Nama instruktur/coach
+  final List<String>? tags; // Tags video
 
   Video({
     required this.id,
@@ -21,6 +23,8 @@ class Video {
     required this.duration,
     required this.rating,
     required this.views,
+    this.instructor,
+    this.tags,
   });
 
   factory Video.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,8 @@ class Video {
       duration: json['duration'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       views: (json['views'] as num?)?.toInt() ?? 0,
+      instructor: json['instructor'] as String?,
+      tags: json['tags'] != null ? List<String>.from(json['tags'] as List) : null,
     );
   }
 }
