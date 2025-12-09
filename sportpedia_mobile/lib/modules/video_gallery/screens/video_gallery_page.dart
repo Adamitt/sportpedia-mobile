@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 import '../models/video.dart';
 import '../services/video_service.dart';
 import 'video_detail_page.dart';
+import 'admin_video_list_page.dart';
 
 class VideoGalleryPage extends StatefulWidget {
   const VideoGalleryPage({super.key});
@@ -13,10 +16,58 @@ class VideoGalleryPage extends StatefulWidget {
 
 class _VideoGalleryPageState extends State<VideoGalleryPage> {
   late Future<List<Video>> _videosFuture;
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   
-  // Filter state
+  // Filter state (applied)
   int? _selectedSportId;
   String? _selectedDifficulty;
+  String _sortBy = 'popular';
+  
+  // Temporary filter state (before applying)
+  int? _tempSportId;
+  String? _tempDifficulty;
+  // Note: Sort is applied immediately, no temp state needed
+  
+  // Color scheme - Professional & Modern
+  static const Color primaryBlue = Color(0xFF1C3264);
+  static const Color primaryBlueDark = Color(0xFF0F1F3D);
+  static const Color accentYellow = Color(0xFFFFDD78);
+  static const Color bgGray = Color(0xFFF5F7FA);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1A1F36);
+  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color borderColor = Color(0xFFE5E7EB);
+  
+  // Helper function untuk mendapatkan gradient difficulty (soft gradient)
+  static LinearGradient _getDifficultyGradient(String difficulty) {
+    switch (difficulty) {
+      case 'Pemula':
+        return const LinearGradient(
+          colors: [Color(0xFF4CAF50), Color(0xFF81C784)], // Soft green gradient
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case 'Menengah':
+        return const LinearGradient(
+          colors: [Color(0xFFFFC107), Color(0xFFFFD54F)], // Soft yellow gradient
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case 'Lanjutan':
+        return const LinearGradient(
+          colors: [Color(0xFF2196F3), Color(0xFF64B5F6)], // Soft blue gradient
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      default:
+        return LinearGradient(
+          colors: [accentYellow, accentYellow.withOpacity(0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+    }
+  }
   
   // Daftar sport & difficulty untuk dropdown
   final List<Map<String, dynamic>> _sports = [
@@ -46,106 +97,517 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
     _loadVideos();
   }
   
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
   void _loadVideos() {
     setState(() {
       _videosFuture = VideoService.fetchVideos(
         sportId: _selectedSportId,
         difficulty: _selectedDifficulty,
+        search: _searchController.text.trim().isNotEmpty ? _searchController.text.trim() : null,
+        sort: _sortBy,
       );
     });
   }
   
   void _applyFilter() {
+    setState(() {
+      _selectedSportId = _tempSportId;
+      _selectedDifficulty = _tempDifficulty;
+      // Sort is applied immediately when selected, so no need to update here
+      // Reset temp values after applying
+      _tempSportId = null;
+      _tempDifficulty = null;
+    });
     _loadVideos();
+  }
+  
+  void _onSearchChanged(String value) {
+    // Debounce search - reload after user stops typing for 500ms
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_searchController.text.trim() == value.trim()) {
+        _loadVideos();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgGray,
       appBar: AppBar(
-        title: const Text('SportPedia - Galeri Video'),
-      ),
-      body: Column(
-        children: [
-          // Filter Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey.shade100,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<int?>(
-                        value: _selectedSportId,
-                        decoration: const InputDecoration(
-                          labelText: 'Olahraga',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        items: _sports.map((sport) {
-                          return DropdownMenuItem<int?>(
-                            value: sport['id'] as int?,
-                            child: Text(sport['name'] as String),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSportId = value;
-                          });
-                        },
-                      ),
+        backgroundColor: cardWhite,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Row(
+          children: [
+            // Logo - Match Django navbar
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: primaryBlue,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.sports_soccer, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 12),
+            // Title - Match Django style
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'SPORT',
+                    style: TextStyle(
+                      color: primaryBlue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      fontFamily: 'Roboto',
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<String?>(
-                        value: _selectedDifficulty,
-                        decoration: const InputDecoration(
-                          labelText: 'Level',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        items: _difficulties.map((diff) {
-                          return DropdownMenuItem<String?>(
-                            value: diff['value'],
-                            child: Text(diff['label'] ?? 'Semua Level'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDifficulty = value;
-                          });
-                        },
-                      ),
+                  ),
+                  TextSpan(
+                    text: 'PEDIA',
+                    style: TextStyle(
+                      color: const Color(0xFFB91C1C), // Red color from Django
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      fontFamily: 'Roboto',
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: _applyFilter,
-                      icon: const Icon(Icons.filter_list),
-                      label: const Text('Filter'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          // Admin button (only show if logged in as admin)
+          Consumer<CookieRequest>(
+            builder: (context, request, child) {
+              // TODO: Check if user is admin/staff
+              // For now, show admin button if logged in
+              if (request.loggedIn) {
+                return IconButton(
+                  icon: Icon(Icons.admin_panel_settings, color: primaryBlue, size: 24),
+                  tooltip: 'Admin Panel',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminVideoListPage(),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    );
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          // Search Icon Button - Opens search in body
+          IconButton(
+            icon: Icon(Icons.search, color: primaryBlue, size: 24),
+            onPressed: () {
+              // Scroll to search section
+              _scrollController.animateTo(
+                380,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardWhite,
+              border: Border(
+                bottom: BorderSide(color: borderColor, width: 1),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildNavItem('Sports Library', Icons.library_books, () {}),
+                  const SizedBox(width: 24),
+                  _buildNavItem('Community', Icons.people, () {}),
+                  const SizedBox(width: 24),
+                  _buildNavItem('Gear Guide', Icons.shopping_bag, () {}),
+                  const SizedBox(width: 24),
+                  _buildNavItem('Video Gallery', Icons.video_library, () {}, isActive: true),
+                ],
+              ),
             ),
           ),
-          // Video List
-          Expanded(
-            child: FutureBuilder<List<Video>>(
+        ),
+      ),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Hero Section - Match Django Design
+          SliverToBoxAdapter(
+            child: Container(
+              height: 400,
+              decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0A1628),
+              Color(0xFF0F1F3D),
+              Color(0xFF1C3264),
+              Color(0xFF2D4A7C),
+              Color(0xFF3D5A94),
+              Color(0xFF4A6BA8),
+              Color(0xFF5B7CBC),
+            ],
+          ),
+                image: DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1400&q=80',
+                  ),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.4),
+                    BlendMode.darken,
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Play Icon - Above title (Match Django) - Single Circle Only
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: CustomPaint(
+                            size: const Size(30, 30),
+                            painter: _PlayIconPainter(primaryBlue),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Title - VIDEO GALLERY
+                      const Text(
+                        'VIDEO GALLERY',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                          fontFamily: 'Roboto',
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      // Subtitle - Match Django
+                      const Text(
+                        'Explore our collection of beginner-friendly sports tutorials',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          height: 1.5,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // GET STARTED Button with Blue Gradient
+                      InkWell(
+                        onTap: () {
+                          _scrollController.animateTo(
+                            400,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF1C3264),
+                                Color(0xFF2D4A7C),
+                                Color(0xFF3D5A94),
+                                Color(0xFF4A6BA8),
+                                Color(0xFF5B7CBC),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'GET STARTED',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 1.2,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          // Search & Filter Section - Match Django Design
+          SliverToBoxAdapter(
+            child: Container(
+              color: bgGray,
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Bar - Centered, Match Django
+                  StatefulBuilder(
+                    builder: (context, setStateLocal) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: cardWhite,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor, width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setStateLocal(() {});
+                            _onSearchChanged(value);
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search for videos, sports, or instructors...',
+                            hintStyle: TextStyle(
+                              color: textSecondary.withOpacity(0.7),
+                              fontSize: 15,
+                              fontFamily: 'Roboto',
+                            ),
+                            prefixIcon: Icon(Icons.search, color: textSecondary, size: 22),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(Icons.clear, color: textSecondary, size: 20),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setStateLocal(() {});
+                                      _loadVideos();
+                                    },
+                                  )
+                                : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: cardWhite,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontFamily: 'Roboto',
+                            color: textPrimary,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  // Filter Section - Match Django: Dropdowns + Apply Button + Count
+                  FutureBuilder<List<Video>>(
+                    future: _videosFuture,
+                    builder: (context, snapshot) {
+                      final videoCount = snapshot.hasData ? snapshot.data!.length : 0;
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              // All Sports Dropdown
+                              Expanded(
+                                child: _buildDropdownFilter(
+                                  label: (_tempSportId ?? _selectedSportId) == null 
+                                      ? 'All Sports' 
+                                      : _sports.firstWhere((s) => s['id'] == (_tempSportId ?? _selectedSportId))['name'] as String,
+                                  onTap: () => _showSportFilter(),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Difficulty Level Dropdown
+                              Expanded(
+                                child: _buildDropdownFilter(
+                                  label: (_tempDifficulty ?? _selectedDifficulty) == null 
+                                      ? 'Difficulty Level' 
+                                      : _difficulties.firstWhere((d) => d['value'] == (_tempDifficulty ?? _selectedDifficulty))['label'] as String,
+                                  onTap: () => _showDifficultyFilter(),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Most Popular Dropdown
+                              Expanded(
+                                child: _buildDropdownFilter(
+                                  label: _sortBy == 'popular' ? 'Most Popular' :
+                                         _sortBy == 'newest' ? 'Newest First' :
+                                         _sortBy == 'rating' ? 'Highest Rating' :
+                                         'Most Views',
+                                  onTap: () => _showSortOptions(),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Apply Filters Button with Blue Gradient
+                              InkWell(
+                                onTap: _applyFilter,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF1C3264),
+                                        Color(0xFF2D4A7C),
+                                        Color(0xFF3D5A94),
+                                        Color(0xFF4A6BA8),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: primaryBlue.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Text(
+                                    'Apply Filters',
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              // Video Count - Match Django
+                              Text(
+                                '$videoCount videos',
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Video Grid - Professional Layout
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            sliver: FutureBuilder<List<Video>>(
               future: _videosFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 20,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildSkeletonCard(),
+                      childCount: 6,
+                    ),
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Gagal memuat video:\n${snapshot.error}',
-                      textAlign: TextAlign.center,
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 64, color: textSecondary),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Failed to load videos',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: textPrimary,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -153,82 +615,778 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                 final videos = snapshot.data ?? [];
 
                 if (videos.isEmpty) {
-                  return const Center(
-                    child: Text('Belum ada video yang tersedia.'),
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: bgGray,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.video_library_outlined, size: 64, color: textSecondary),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No videos found',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try adjusting your filters or search criteria',
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 15,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 }
 
-                return ListView.builder(
-                  itemCount: videos.length,
-                  itemBuilder: (context, index) {
-                    final video = videos[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            video.thumbnail,
-                            width: 80,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => Container(
-                              width: 80,
-                              height: 60,
-                              color: Colors.grey.shade300,
-                              child: const Icon(Icons.image_not_supported),
-                            ),
-                          ),
-                        ),
-                        title: Text(video.title),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              video.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Chip(
-                                  label: Text(video.sportName),
-                                  visualDensity: VisualDensity.compact,
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                const SizedBox(width: 8),
-                                Chip(
-                                  label: Text(video.difficulty),
-                                  visualDensity: VisualDensity.compact,
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                const SizedBox(width: 8),
-                                Text('${video.duration} • ⭐ ${video.rating}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                        isThreeLine: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VideoDetailPage(videoId: video.id),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
+                // Grid: 3 columns per baris
+                return SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 0.75, // Proporsi untuk 3 kolom
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 20,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final video = videos[index];
+                      return _buildVideoCard(video);
+                    },
+                    childCount: videos.length,
+                  ),
                 );
               },
+            ),
+          ),
+          
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 20),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildNavItem(String label, IconData icon, VoidCallback onTap, {bool isActive = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: isActive
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1C3264),
+                    Color(0xFF2D4A7C),
+                    Color(0xFF3D5A94),
+                  ],
+                )
+              : null,
+          color: isActive ? null : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: primaryBlue.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isActive ? Colors.white : Colors.grey[700],
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.white : Colors.grey[700],
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                fontSize: 14,
+                fontFamily: 'Roboto',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildDropdownFilter({required String label, required VoidCallback onTap}) {
+    return Material(
+      color: cardWhite,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: cardWhite,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(Icons.arrow_drop_down, color: textSecondary, size: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _showSportFilter() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: cardWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Select Sport',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: _sports.map((sport) => ListTile(
+                  title: Text(
+                    sport['name'] as String,
+                    style: const TextStyle(fontFamily: 'Roboto'),
+                  ),
+                  selected: (_tempSportId ?? _selectedSportId) == sport['id'],
+                  onTap: () {
+                    setState(() {
+                      _tempSportId = sport['id'] as int?;
+                    });
+                    Navigator.pop(context);
+                  },
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  void _showDifficultyFilter() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: cardWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Select Difficulty',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: _difficulties.map((diff) => ListTile(
+                  title: Text(
+                    diff['label'] ?? 'Semua Level',
+                    style: const TextStyle(fontFamily: 'Roboto'),
+                  ),
+                  selected: (_tempDifficulty ?? _selectedDifficulty) == diff['value'],
+                  onTap: () {
+                    setState(() {
+                      _tempDifficulty = diff['value'];
+                    });
+                    Navigator.pop(context);
+                  },
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: cardWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Sort By',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: ['popular', 'newest', 'rating', 'views'].map((sort) => ListTile(
+                  title: Text(
+                    sort == 'popular' ? 'Most Popular' :
+                    sort == 'newest' ? 'Newest First' :
+                    sort == 'rating' ? 'Highest Rating' :
+                    'Most Views',
+                    style: const TextStyle(fontFamily: 'Roboto'),
+                  ),
+                  selected: _sortBy == sort,
+                  onTap: () {
+                    setState(() {
+                      _sortBy = sort; // Apply sort immediately
+                    });
+                    Navigator.pop(context);
+                    _loadVideos(); // Reload videos with new sort
+                  },
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildSkeletonCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardWhite,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              decoration: BoxDecoration(
+                color: bgGray,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 20, width: double.infinity, color: bgGray),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(height: 24, width: 80, color: bgGray),
+                      const SizedBox(width: 8),
+                      Container(height: 24, width: 80, color: bgGray),
+                    ],
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(height: 14, width: 60, color: bgGray),
+                      Container(height: 14, width: 40, color: bgGray),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+  
+  Widget _buildVideoCard(Video video) {
+    return _Animated3DCard(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoDetailPage(videoId: video.id),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardWhite,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              cardWhite,
+              cardWhite.withOpacity(0.95),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Thumbnail - Match Django: aspect-video (16:9)
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      video.thumbnail,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, _, __) => Container(
+                        color: bgGray,
+                        child: Icon(Icons.video_library_outlined, size: 48, color: textSecondary),
+                      ),
+                    ),
+                    // Duration Badge - Match Django style
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: primaryBlue.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              video.duration,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Content - Lebih besar untuk 3 kolom
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title - Lebih besar
+                  SizedBox(
+                    height: 40,
+                    child: Text(
+                      video.title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        fontFamily: 'Roboto',
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  
+                  // Tags - Lebih besar dan jelas
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: primaryBlue,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryBlue.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          video.sportName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: _getDifficultyGradient(video.difficulty),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _getDifficultyGradient(video.difficulty).colors.first.withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          video.difficulty,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // Stats - Lebih besar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.visibility_outlined, size: 14, color: textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${video.views}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: textSecondary,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star_rounded, size: 14, color: accentYellow),
+                          const SizedBox(width: 4),
+                          Text(
+                            video.rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // 3D Animated Card Widget with depth effect
+  Widget _Animated3DCard({required VoidCallback onTap, required Widget child}) {
+    return _Animated3DCardStateful(
+      onTap: onTap,
+      child: child,
+      primaryBlue: primaryBlue,
+    );
+  }
 }
 
+// Stateful 3D Card with animations
+class _Animated3DCardStateful extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+  final Color primaryBlue;
+
+  const _Animated3DCardStateful({
+    required this.onTap,
+    required this.child,
+    required this.primaryBlue,
+  });
+
+  @override
+  State<_Animated3DCardStateful> createState() => _Animated3DCardStatefulState();
+}
+
+class _Animated3DCardStatefulState extends State<_Animated3DCardStateful>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _elevationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    _elevationAnimation = Tween<double>(begin: 1.0, end: 0.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _controller.forward();
+      },
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () {
+        _controller.reverse();
+      },
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  // Deep 3D shadow layers
+                  BoxShadow(
+                    color: widget.primaryBlue.withOpacity(0.15 * _elevationAnimation.value),
+                    blurRadius: 30 * _elevationAnimation.value,
+                    offset: Offset(0, 12 * _elevationAnimation.value),
+                    spreadRadius: -2,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.12 * _elevationAnimation.value),
+                    blurRadius: 25 * _elevationAnimation.value,
+                    offset: Offset(0, 8 * _elevationAnimation.value),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08 * _elevationAnimation.value),
+                    blurRadius: 15 * _elevationAnimation.value,
+                    offset: Offset(0, 4 * _elevationAnimation.value),
+                  ),
+                  // Top highlight for 3D effect
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, -2),
+                    spreadRadius: -1,
+                  ),
+                ],
+              ),
+              child: widget.child,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Custom Painter for Play Icon Triangle
+class _PlayIconPainter extends CustomPainter {
+  final Color color;
+  
+  _PlayIconPainter(this.color);
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    
+    final path = Path();
+    // Draw triangle pointing right
+    path.moveTo(size.width * 0.3, size.height * 0.2);
+    path.lineTo(size.width * 0.3, size.height * 0.8);
+    path.lineTo(size.width * 0.8, size.height * 0.5);
+    path.close();
+    
+    canvas.drawPath(path, paint);
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 

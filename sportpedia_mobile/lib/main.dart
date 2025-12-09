@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'modules/video_gallery/screens/video_gallery_page.dart';
 
 void main() {
@@ -11,12 +13,36 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SportPedia',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return Provider(
+      create: (_) {
+        CookieRequest request = CookieRequest();
+        return request;
+      },
+      child: MaterialApp(
+        title: 'SportPedia',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1C3264)),
+          fontFamily: 'Roboto', // Match landing page font
+          textTheme: const TextTheme(
+            displayLarge: TextStyle(fontFamily: 'Roboto'),
+            displayMedium: TextStyle(fontFamily: 'Roboto'),
+            displaySmall: TextStyle(fontFamily: 'Roboto'),
+            headlineLarge: TextStyle(fontFamily: 'Roboto'),
+            headlineMedium: TextStyle(fontFamily: 'Roboto'),
+            headlineSmall: TextStyle(fontFamily: 'Roboto'),
+            titleLarge: TextStyle(fontFamily: 'Roboto'),
+            titleMedium: TextStyle(fontFamily: 'Roboto'),
+            titleSmall: TextStyle(fontFamily: 'Roboto'),
+            bodyLarge: TextStyle(fontFamily: 'Roboto'),
+            bodyMedium: TextStyle(fontFamily: 'Roboto'),
+            bodySmall: TextStyle(fontFamily: 'Roboto'),
+            labelLarge: TextStyle(fontFamily: 'Roboto'),
+            labelMedium: TextStyle(fontFamily: 'Roboto'),
+            labelSmall: TextStyle(fontFamily: 'Roboto'),
+          ),
+        ),
+        home: const VideoGalleryPage(),
       ),
-      home: const VideoGalleryPage(),
     );
   }
 }
