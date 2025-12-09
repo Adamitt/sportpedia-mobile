@@ -1,4 +1,3 @@
-// lib/widgets/gear_card.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sportpedia_mobile/models/gear_list.dart';
@@ -6,8 +5,8 @@ import 'package:sportpedia_mobile/models/gear_list.dart';
 class GearCard extends StatelessWidget {
   final Datum datum;
   final VoidCallback? onTap;
-  final VoidCallback? onEdit;   // <<< new
-  final VoidCallback? onDelete; // <<< new
+  final VoidCallback? onEdit;   
+  final VoidCallback? onDelete; 
 
   const GearCard({
     super.key,
@@ -74,7 +73,6 @@ class GearCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image with gradient overlay
                 Stack(
                   children: [
                     Hero(
@@ -87,17 +85,18 @@ class GearCard extends StatelessWidget {
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _placeholderImage(),
+                                errorBuilder: (_, __, ___) =>
+                                    _placeholderImage(),
                               )
                             : _placeholderImage(),
                       ),
                     ),
-                    // Level badge on image with glass effect
                     Positioned(
                       top: 6,
                       left: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 5),
                         decoration: BoxDecoration(
                           color: levelColor,
                           borderRadius: BorderRadius.circular(8),
@@ -136,12 +135,10 @@ class GearCard extends StatelessWidget {
 
                 const SizedBox(width: 14),
 
-                // Right content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title + popup menu row
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -160,30 +157,33 @@ class GearCard extends StatelessWidget {
                             ),
                           ),
 
-                          // === Popup menu: Edit / Delete ===
-                          PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            onSelected: (val) async {
-                              if (val == 'edit') {
-                                if (onEdit != null) onEdit!();
-                              } else if (val == 'delete') {
-                                if (onDelete != null) onDelete!();
-                              }
-                            },
-                            itemBuilder: (ctx) => [
-                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                            ],
-                            child: Container(
-                              margin: const EdgeInsets.only(left: 6),
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
+                          if (onEdit != null && onDelete != null)
+                            PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              onSelected: (val) async {
+                                if (val == 'edit') {
+                                  if (onEdit != null) onEdit!();
+                                } else if (val == 'delete') {
+                                  if (onDelete != null) onDelete!();
+                                }
+                              },
+                              itemBuilder: (ctx) => [
+                                const PopupMenuItem(
+                                    value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(
+                                    value: 'delete', child: Text('Delete')),
+                              ],
+                              child: Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.more_vert,
+                                    size: 18, color: Color(0xFF475569)),
                               ),
-                              child: const Icon(Icons.more_vert, size: 18, color: Color(0xFF475569)),
                             ),
-                          ),
                         ],
                       ),
 
@@ -225,10 +225,10 @@ class GearCard extends StatelessWidget {
 
                       const SizedBox(height: 10),
 
-                      // Price with gradient background
                       if ((datum.priceRange ?? '').isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -274,7 +274,8 @@ class GearCard extends StatelessWidget {
                         )
                       else
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(10),
@@ -314,7 +315,8 @@ class GearCard extends StatelessWidget {
                           runSpacing: 6,
                           children: tags.take(3).map((tag) {
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(8),
@@ -339,7 +341,6 @@ class GearCard extends StatelessWidget {
                   ),
                 ),
 
-                // Arrow indicator with better design
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.all(8),

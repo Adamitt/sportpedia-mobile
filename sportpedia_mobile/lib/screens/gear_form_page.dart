@@ -15,6 +15,10 @@ class GearFormPage extends StatefulWidget {
 class _GearFormPageState extends State<GearFormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
+  
+  // ✅ VARIBEL BARU UNTUK SPORTS API
+  List<Map<String, String>> _sportChoices = [];
+  bool _sportsLoading = true; // State untuk loading daftar sport
 
   // Controllers untuk menyimpan nilai awal saat edit
   late TextEditingController _nameController;
@@ -31,16 +35,7 @@ class _GearFormPageState extends State<GearFormPage> {
   String _sportId = '';
   String _level = 'beginner';
 
-  final List<Map<String, String>> _sportChoices = [
-    {'id': '1', 'name': 'Bulu Tangkis'},
-    {'id': '2', 'name': 'Yoga'},
-    {'id': '3', 'name': 'Tenis'},
-    {'id': '4', 'name': 'Renang'},
-    {'id': '5', 'name': 'Panahan'},
-    {'id': '6', 'name': 'Lari'},
-    {'id': '7', 'name': 'Basket'},
-    {'id': '8', 'name': 'Futsal'},
-  ];
+  // ❌ HAPUS: Daftar _sportChoices yang hardcoded sudah dihapus di sini.
 
   @override
   void initState() {
@@ -63,16 +58,15 @@ class _GearFormPageState extends State<GearFormPage> {
     _tagsController = TextEditingController(
       text: widget.gear?.tags.join(', ') ?? ''
     );
+    
+    // Panggil fungsi untuk ambil data sport dari API
+    _fetchSports();
 
-    // Set sportId dan level jika edit mode
+    // Set level jika edit mode
     if (widget.gear != null) {
-      // Cari sportId berdasarkan sportName dari gear
-      final sportName = widget.gear!.sportName;
-      final matchingSport = _sportChoices.firstWhere(
-        (s) => s['name'] == sportName,
-        orElse: () => {'id': '', 'name': ''},
-      );
-      _sportId = matchingSport['id'] ?? '';
+      // ✅ PERBAIKAN: Asumsi sportId sudah tersedia sebagai string di objek gear.
+      // Jika di backend sportId berupa integer, Anda mungkin perlu .toString()
+      _sportId = widget.gear!.sportId.toString(); 
       
       // Konversi levelDisplay ke level yang sesuai dengan form
       final levelDisplay = widget.gear!.levelDisplay.toLowerCase();
@@ -83,6 +77,34 @@ class _GearFormPageState extends State<GearFormPage> {
       } else if (levelDisplay.contains('profesional') || levelDisplay.contains('advanced')) {
         _level = 'advanced';
       }
+    }
+  }
+
+  // ✅ FUNGSI BARU: Ambil daftar sport dari API
+  Future<void> _fetchSports() async {
+    try {
+      // Pastikan GearGuideService.getSports() sudah ada
+      final List<Map<String, String>> fetchedSports = await GearGuideService.getSports(); 
+      
+      if (mounted) {
+        setState(() {
+          _sportChoices = fetchedSports;
+          _sportsLoading = false;
+          
+          // Set nilai default/awal untuk mode Add jika belum ada sport terpilih
+          if (widget.gear == null && _sportChoices.isNotEmpty && _sportId.isEmpty) {
+             _sportId = _sportChoices.first['id'] ?? '';
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _sportsLoading = false);
+      }
+      // Tampilkan error jika gagal load sport
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load sport list: $e')),
+      );
     }
   }
 
@@ -158,11 +180,30 @@ class _GearFormPageState extends State<GearFormPage> {
     required List<DropdownMenuItem<String>> items,
     required Function(String?) onChanged,
     String? Function(String?)? validator,
+    required bool isLoading, // ✅ Tambahkan parameter isLoading
   }) {
+    // Tentukan item yang akan ditampilkan saat loading
+    final dropdownItems = isLoading 
+      ? [
+          const DropdownMenuItem<String>(
+            value: '',
+            child: Text('Loading Sports...', style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xFF64748B))),
+          )
+        ]
+      : items;
+
+    // Tentukan nilai default. Gunakan null jika loading atau value kosong
+    final displayValue = isLoading ? null : (value.isEmpty ? null : value);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value.isEmpty ? null : value,
+        // Value: Diatur berdasarkan displayValue
+        value: displayValue, 
+        
+        // Disabled: Tidak bisa diubah saat loading
+        onChanged: isLoading ? null : onChanged, 
+        
         style: GoogleFonts.poppins(
           fontSize: 14,
           color: const Color(0xFF1E293B),
@@ -176,13 +217,15 @@ class _GearFormPageState extends State<GearFormPage> {
           prefixIcon: Icon(icon, color: const Color(0xFF3B82F6), size: 20),
           filled: true,
           fillColor: const Color(0xFFF8FAFC),
+          
+          // Warna border akan berubah jika disabled (saat loading)
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            borderSide: BorderSide(color: isLoading ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            borderSide: BorderSide(color: isLoading ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -190,8 +233,7 @@ class _GearFormPageState extends State<GearFormPage> {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        items: items,
-        onChanged: onChanged,
+        items: dropdownItems,
         validator: validator,
       ),
     );
@@ -302,6 +344,7 @@ class _GearFormPageState extends State<GearFormPage> {
                     validator: (v) => (v == null || v.isEmpty) ? 'Name is required' : null,
                   ),
 
+                  // ✅ GUNAKAN _sportsLoading DI SINI
                   _buildDropdown(
                     label: 'Sport Type',
                     icon: Icons.sports,
@@ -314,6 +357,7 @@ class _GearFormPageState extends State<GearFormPage> {
                     }).toList(),
                     onChanged: (v) => setState(() => _sportId = v ?? ''),
                     validator: (v) => (v == null || v.isEmpty) ? 'Choose a sport' : null,
+                    isLoading: _sportsLoading, // ✅ Pass loading state
                   ),
 
                   _buildDropdown(
@@ -326,6 +370,7 @@ class _GearFormPageState extends State<GearFormPage> {
                       DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
                     ],
                     onChanged: (v) => setState(() => _level = v ?? 'beginner'),
+                    isLoading: false, // Tidak perlu loading untuk level
                   ),
 
                   const SizedBox(height: 24),
@@ -431,7 +476,7 @@ class _GearFormPageState extends State<GearFormPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _loading ? null : _submit,
+                      onPressed: _loading || _sportsLoading ? null : _submit, // 🛑 Disable jika loading sport juga
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
                         foregroundColor: Colors.white,
@@ -442,7 +487,7 @@ class _GearFormPageState extends State<GearFormPage> {
                         elevation: 0,
                         shadowColor: const Color(0xFF3B82F6).withOpacity(0.4),
                       ),
-                      child: _loading
+                      child: _loading || _sportsLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
@@ -488,124 +533,223 @@ class _GearFormPageState extends State<GearFormPage> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+  setState(() => _loading = true);
 
-    final recommended = _recommendedBrandsController.text
+  // Konversi input text -> List<String>
+  final recommended = _recommendedBrandsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    final materials = _materialsController.text
+  final materials = _materialsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    final tags = _tagsController.text
+  final tags = _tagsController.text
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
 
-    final result = await GearGuideService.submitGear(
-      name: _nameController.text,
-      sportId: _sportId,
-      function: _functionController.text,
-      description: _descriptionController.text,
-      image: _imageController.text,
-      priceRange: _priceRangeController.text,
-      ecommerceLink: _ecommerceLinkController.text,
-      level: _level,
-      recommendedBrands: recommended,
-      materials: materials,
-      careTips: _careTipsController.text,
-      tags: tags,
-    );
-
-    setState(() => _loading = false);
-
-    if (result['success'] == true) {
+    try {
+      final result = widget.gear == null
+        ? await GearGuideService.submitGear(
+              context,
+              name: _nameController.text,
+              sportId: _sportId,
+              function: _functionController.text,
+              description: _descriptionController.text,
+              image: _imageController.text,
+              priceRange: _priceRangeController.text,
+              ecommerceLink: _ecommerceLinkController.text,
+              level: _level,
+              recommendedBrands: recommended,
+              materials: materials,
+              careTips: _careTipsController.text,
+              tags: tags,
+            )
+        : await GearGuideService.editGear(
+              context,
+              widget.gear!.id, // Menggunakan ID yang sudah ada
+              name: _nameController.text,
+              sportId: _sportId,
+              function: _functionController.text,
+              description: _descriptionController.text,
+              image: _imageController.text,
+              priceRange: _priceRangeController.text,
+              ecommerceLink: _ecommerceLinkController.text,
+              level: _level,
+              recommendedBrands: recommended,
+              materials: materials,
+              careTips: _careTipsController.text,
+              tags: tags,
+            );
+        
       if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD1FAE5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    color: Color(0xFF10B981),
-                    size: 48,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Success!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.gear != null 
-                      ? 'Gear has been updated successfully'
-                      : 'Gear has been added successfully',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close dialog
-                      Navigator.pop(context, true); // Return true to trigger reload
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+      setState(() => _loading = false);
+
+      final bool ok = result['ok'] == true;
+      if (ok) {
+        // ✅ Sukses
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD1FAE5),
+                      shape: BoxShape.circle,
                     ),
-                    child: Text(
-                      'OK',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF10B981),
+                      size: 48,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  Text(
+                    'Success!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.gear != null
+                        ? 'Gear has been updated successfully'
+                        : 'Gear has been added successfully',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);      // close dialog
+                        Navigator.pop(context, true); // trigger reload di GearGuidePage
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'OK',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    } else {
-      final message = result['message'] ?? 'Server error';
+        );
+      } else {
+        // ❌ Gagal tapi server balikin JSON ok:false
+        final msg = (result['error'] ?? result['message'] ?? 'Unknown error')
+            .toString();
+
+        await showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEE2E2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFEF4444),
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Error',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Failed to ${widget.gear != null ? 'update' : 'add'} gear: $msg',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Close',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // 🔥 Kalau ada exception (misal koneksi error), loading TETEP dimatiin
       if (!mounted) return;
-      showDialog(
+      setState(() => _loading = false);
+
+      await showDialog(
         context: context,
         builder: (_) => Dialog(
           shape: RoundedRectangleBorder(
@@ -618,8 +762,8 @@ class _GearFormPageState extends State<GearFormPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFEE2E2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -630,7 +774,7 @@ class _GearFormPageState extends State<GearFormPage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Error',
+                  'Unexpected Error',
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -639,7 +783,7 @@ class _GearFormPageState extends State<GearFormPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Failed to ${widget.gear != null ? 'update' : 'add'} gear: $message',
+                  e.toString(),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 14,

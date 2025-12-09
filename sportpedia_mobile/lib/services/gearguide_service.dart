@@ -1,16 +1,18 @@
 // lib/services/gearguide_service.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'dart:async'; // Menambahkan import untuk Future
 
 import 'package:sportpedia_mobile/models/gear_list.dart';
 
 class GearGuideService {
-  // ganti host kalau kamu jalanin server di alamat lain
   static String get baseUrl =>
       kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
 
-  /// Ambil list gear (GET /gearguide/json/)
   static Future<List<Datum>> fetchGears() async {
     final url = Uri.parse('$baseUrl/gearguide/json/');
     final response = await http.get(url);
@@ -26,9 +28,79 @@ class GearGuideService {
     return gearlist.data;
   }
 
-  /// Submit gear baru (POST form-encoded ke /gearguide/flutter/add/)
-  /// Mengembalikan Map: {'success': true, 'data': ...} atau {'success': false, 'message': ...}
-  static Future<Map<String, dynamic>> submitGear({
+  static Future<List<Map<String, String>>> getSports() async {
+    final url = Uri.parse('$baseUrl/gearguide/flutter/sports/');
+    final response = await http.get(
+      url,
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Gagal memuat daftar olahraga (status: ${response.statusCode})');
+    }
+
+    final Map<String, dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+    
+    if (body['ok'] == false) {
+       throw Exception('Server error saat fetch sports: ${body['error']}');
+    }
+
+    final List<dynamic> jsonList = body['data'] as List<dynamic>? ?? []; 
+
+    return jsonList.map((sport) {
+      if (sport is Map<String, dynamic>) {
+          return {
+            'id': sport['id']?.toString() ?? '', 
+            'name': sport['name']?.toString() ?? 'Unknown Sport',
+          };
+      }
+      // Handle jika item di dalam list bukan Map yang diharapkan
+      return {'id': '', 'name': 'Invalid Data'};
+    }).toList();
+  }
+
+  static Future<Map<String, dynamic>> submitGear(
+  BuildContext context, {
+  required String name,
+  required String sportId,
+  String function = '',
+  String description = '',
+  String image = '',
+  String priceRange = '',
+  String ecommerceLink = '',
+  String level = 'beginner',
+  List<String>? recommendedBrands,
+  List<String>? materials,
+  String careTips = '',
+  List<String>? tags,
+}) async {
+  final request = context.read<CookieRequest>();
+
+  final body = {
+    'name': name,
+    'sport': sportId,
+    'function': function,
+    'description': description,
+    'image': image,
+    'price_range': priceRange,
+    'ecommerce_link': ecommerceLink,
+    'level': level,
+    // ⬇️ KIRIM STRING, BUKAN LIST
+    'recommended_brands': (recommendedBrands ?? []).join(','),
+    'materials': (materials ?? []).join(','),
+    'care_tips': careTips,
+    'tags': (tags ?? []).join(','),
+  };
+
+  final url = '$baseUrl/gearguide/flutter/gears/add/';
+  final response = await request.post(url, body);
+
+  return Map<String, dynamic>.from(response);
+}
+
+  static Future<Map<String, dynamic>> editGear(
+    BuildContext context,
+    String id, {
     required String name,
     required String sportId,
     String function = '',
@@ -42,10 +114,9 @@ class GearGuideService {
     String careTips = '',
     List<String>? tags,
   }) async {
-    final url = Uri.parse('$baseUrl/gearguide/flutter/add/');
+    final request = context.read<CookieRequest>();
 
-    // convert lists -> comma separated string for Django view yang pakai request.POST.get(...)
-    final body = <String, String>{
+    final body = {
       'name': name,
       'sport': sportId,
       'function': function,
@@ -54,50 +125,27 @@ class GearGuideService {
       'price_range': priceRange,
       'ecommerce_link': ecommerceLink,
       'level': level,
-      'recommended_brands': (recommendedBrands ?? []).join(', '),
-      'materials': (materials ?? []).join(', '),
+      'recommended_brands': (recommendedBrands ?? []).join(','),
+      'materials': (materials ?? []).join(','),
+      'tags': (tags ?? []).join(','),
       'care_tips': careTips,
-      'tags': (tags ?? []).join(', '),
     };
 
-    try {
-      final resp = await http.post(url, body: body);
-
-      if (resp.statusCode == 200 || resp.statusCode == 201) {
-        // coba parse JSON, kalau bukan JSON kembalikan raw
-        try {
-          final decoded = jsonDecode(utf8.decode(resp.bodyBytes));
-          return {'success': true, 'data': decoded};
-        } catch (_) {
-          return {'success': true, 'raw': resp.body};
-        }
-      } else {
-        String message = resp.body;
-        try {
-          final parsed = jsonDecode(utf8.decode(resp.bodyBytes));
-          message = parsed.toString();
-        } catch (_) {}
-        return {
-          'success': false,
-          'status': resp.statusCode,
-          'message': message,
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': e.toString()};
-    }
+    final url = '$baseUrl/gearguide/flutter/gears/$id/edit/';
+    final response = await request.post(url, body);
+    return Map<String, dynamic>.from(response);
   }
 
-  /// Hapus gear (DELETE/POST ke endpoint Django).
-  /// NOTE: endpoint-nya SILAKAN disesuaikan dengan view Django-mu.
-  static Future<void> deleteGear(dynamic id) async {
-    // contoh: kamu buat view di Django: path("gearguide/flutter/delete/<int:id>/", ...)
-    final url = Uri.parse('$baseUrl/gearguide/flutter/delete/$id/');
 
-    final resp = await http.post(url); // atau .delete(url) kalau view-mu pakai DELETE
+    static Future<Map<String, dynamic>> deleteGear(
+    BuildContext context,
+    String id,
+  ) async {
+    final request = context.read<CookieRequest>();
+    final url = '$baseUrl/gearguide/flutter/gears/$id/delete/';
 
-    if (resp.statusCode != 200 && resp.statusCode != 204) {
-      throw Exception('Gagal menghapus gear (status: ${resp.statusCode})');
-    }
+    final response = await request.post(url, {}); // pakai POST, bukan http.delete
+    return Map<String, dynamic>.from(response);
   }
+
 }
