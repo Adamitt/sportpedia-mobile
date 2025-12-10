@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import '../theme/app_colors.dart';
 
 class HeroSection extends StatelessWidget {
@@ -10,8 +11,13 @@ class HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 500,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+      // chevinka: Responsive height untuk Android
+      height: MediaQuery.of(context).size.width > 1024 ? 500 : 350,
+      // chevinka: Responsive untuk Android
+      margin: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
+        vertical: MediaQuery.of(context).size.width > 1024 ? 40 : 24,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(68),
         boxShadow: [
@@ -76,15 +82,18 @@ class HeroSection extends StatelessWidget {
             // Content
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                // chevinka: Responsive padding untuk Android
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 24,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Satu Langkah ke Arena,\nSeribu Peluang Beraksi',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 56,
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                        fontSize: MediaQuery.of(context).size.width > 1024 ? 56 : 32, // Responsive font size
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                         height: 1.33,
@@ -112,9 +121,9 @@ class HeroSection extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'GET STARTED',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

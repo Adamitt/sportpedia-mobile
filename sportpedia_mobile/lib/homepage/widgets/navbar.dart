@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../theme/app_colors.dart';
@@ -80,9 +81,10 @@ class _HomeNavBarState extends State<HomeNavBar> {
         children: [
           // Row Atas: Logo + Menu + Search + Profile
           Container(
+            // chevinka: Responsive untuk Android - kurangi padding untuk mobile
             padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 24,
-              vertical: 16,
+              horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : (MediaQuery.of(context).size.width > 600 ? 24 : 16),
+              vertical: MediaQuery.of(context).size.width > 1024 ? 16 : 12,
             ),
             decoration: const BoxDecoration(
               border: Border(
@@ -116,10 +118,10 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                   color: AppColors.primaryBlue,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
                                     'SP',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 20,
@@ -132,11 +134,11 @@ class _HomeNavBarState extends State<HomeNavBar> {
                           const SizedBox(width: 12),
                           RichText(
                             text: TextSpan(
-                              style: const TextStyle(
+                              style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
                               ),
-                              children: const [
+                              children: [
                                 TextSpan(
                                   text: 'SPORT',
                                   style: TextStyle(
@@ -169,7 +171,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               controller: _searchController,
                               decoration: InputDecoration(
                                 hintText: 'Cari olahraga, perlengkapan, atau video...',
-                                hintStyle: TextStyle(color: Colors.grey.shade500),
+                                hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500), // chevinka: Gunakan Poppins
                                 prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
                                 filled: true,
                                 fillColor: Colors.white,
@@ -245,9 +247,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                     );
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Logout',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                     color: AppColors.primaryBlueDark,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -263,9 +265,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                 onPressed: () {
                                   Navigator.pushNamed(context, '/login');
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Log in',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                     color: AppColors.primaryBlueDark,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -285,9 +287,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                   ),
                                   elevation: 4,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Sign up',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -306,9 +308,10 @@ class _HomeNavBarState extends State<HomeNavBar> {
 
           // Row Bawah: Menu Navigasi
           Container(
+            // chevinka: Responsive untuk Android
             padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 24,
-              vertical: 12,
+              horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : (MediaQuery.of(context).size.width > 600 ? 24 : 12),
+              vertical: MediaQuery.of(context).size.width > 1024 ? 12 : 8,
             ),
             child: Center(
               child: SizedBox(
@@ -368,7 +371,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
             color: Colors.grey.shade800,
             fontWeight: FontWeight.w600,
             fontSize: 16,

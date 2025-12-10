@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import '../theme/app_colors.dart';
 
 class GreetingSection extends StatelessWidget {
@@ -7,7 +8,11 @@ class GreetingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+      // chevinka: Responsive untuk Android
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
+        vertical: MediaQuery.of(context).size.width > 1024 ? 40 : 24,
+      ),
       child: Center(
         child: ShaderMask(
           shaderCallback: (bounds) {
@@ -42,10 +47,10 @@ class GreetingSection extends StatelessWidget {
                   ).createShader(bounds);
                 },
                 blendMode: BlendMode.srcIn,
-                child: const Text(
+                child: Text(
                   'Hello, Are you new here?',
-                  style: TextStyle(
-                    fontSize: 30,
+                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                    fontSize: MediaQuery.of(context).size.width > 1024 ? 30 : 24, // Responsive font size
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     letterSpacing: 0.5,

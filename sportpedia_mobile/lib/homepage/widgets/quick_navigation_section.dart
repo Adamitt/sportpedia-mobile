@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import '../theme/app_colors.dart';
 
 class QuickNavigationSection extends StatelessWidget {
@@ -7,7 +8,11 @@ class QuickNavigationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      // chevinka: Responsive untuk Android
+      padding: EdgeInsets.symmetric(
+        vertical: MediaQuery.of(context).size.width > 1024 ? 48 : 32,
+        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
+      ),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: Colors.grey.shade300),
@@ -37,8 +42,8 @@ class QuickNavigationSection extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     'Explore Features',
-                    style: TextStyle(
-                      fontSize: 32,
+                    style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                      fontSize: MediaQuery.of(context).size.width > 1024 ? 32 : 24, // Responsive font size
                       fontWeight: FontWeight.bold,
                       foreground: Paint()
                       ..shader = LinearGradient(
@@ -70,7 +75,7 @@ class QuickNavigationSection extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Choose your path to sports excellence',
-                style: TextStyle(
+                style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                   fontSize: 12,
                   color: Colors.grey.shade600,
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import '../models/popular_category.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
@@ -49,8 +50,9 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
         gradient: AppColors.whatsHotBackgroundGradient,
       ),
       padding: EdgeInsets.symmetric(
-        vertical: 48,
-        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 24,
+        // chevinka: Responsive untuk Android - kurangi padding untuk mobile
+        vertical: MediaQuery.of(context).size.width > 1024 ? 48 : 32,
+        horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : (MediaQuery.of(context).size.width > 600 ? 24 : 16),
       ),
       margin: const EdgeInsets.only(top: 60),
       child: Stack(
@@ -137,8 +139,9 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
           // Content
           Padding(
             padding: EdgeInsets.only(
-              left: MediaQuery.of(context).size.width > 1024 ? 400 : 200,
-              right: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
+              // chevinka: Responsive untuk Android - sesuaikan left padding untuk mobile
+              left: MediaQuery.of(context).size.width > 1024 ? 400 : (MediaQuery.of(context).size.width > 600 ? 200 : 0),
+              right: MediaQuery.of(context).size.width > 1024 ? 48 : (MediaQuery.of(context).size.width > 600 ? 16 : 8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +163,9 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                           const SizedBox(height: 8),
                           Text(
                             'Error loading popular categories',
-                            style: TextStyle(color: Colors.red.shade700),
+                            style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                              color: Colors.red.shade700,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           ElevatedButton(
@@ -174,10 +179,12 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                 else if (_items.isEmpty)
                   Container(
                     padding: const EdgeInsets.all(24),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'Belum ada data What\'s Hot',
-                        style: TextStyle(color: Colors.grey),
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   )
@@ -190,10 +197,12 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : (MediaQuery.of(context).size.width > 600 ? 2 : 2),
-                        crossAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : 16,
-                        mainAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : 16,
-                        childAspectRatio: MediaQuery.of(context).size.width > 1024 ? 0.7 : 0.75,
+                        // chevinka: Responsive untuk Android - 1 kolom di mobile kecil
+                        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : (MediaQuery.of(context).size.width > 600 ? 2 : 1),
+                        crossAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : (MediaQuery.of(context).size.width > 600 ? 16 : 12),
+                        mainAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 24 : (MediaQuery.of(context).size.width > 600 ? 16 : 12),
+                        // chevinka: childAspectRatio disesuaikan untuk Android
+                        childAspectRatio: MediaQuery.of(context).size.width > 1024 ? 0.7 : (MediaQuery.of(context).size.width > 600 ? 0.75 : 0.9),
                       ),
                       itemCount: _items.length,
                       itemBuilder: (context, index) {
@@ -245,6 +254,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // chevinka: Fix overflow dengan min size
                 children: [
                   if (isLibrary) ...[
                     // Badge dengan styling sesuai Django
@@ -271,7 +281,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                       ),
                       child: Text(
                         'Trending • Library',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins seperti angie
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.8,
@@ -305,30 +315,34 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                item.title,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1F2937),
-                                  height: 1.25,
+                              Flexible( // chevinka: Fix overflow dengan Flexible
+                                child: Text(
+                                  item.title,
+                                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1F2937),
+                                    height: 1.25,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
                                 const SizedBox(height: 6),
-                                Text(
-                                  item.excerpt!,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF4B5563),
-                                    height: 1.4,
+                                Flexible( // chevinka: Fix overflow dengan Flexible
+                                  child: Text(
+                                    item.excerpt!,
+                                    style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
+                                      fontSize: 12,
+                                      color: const Color(0xFF4B5563),
+                                      height: 1.4,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ],
@@ -367,7 +381,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                     const SizedBox(height: 12),
                     Text(
                       'Trending • ${item.category}',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                         fontSize: 11,
                         color: Colors.grey.shade500,
                         fontWeight: FontWeight.w500,
@@ -380,7 +394,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                     const SizedBox(height: 8),
                     Text(
                       item.title,
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
@@ -413,9 +427,9 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                           ),
                         ],
                       ),
-                      child: const Text(
+                      child: Text(
                         'Read more',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
