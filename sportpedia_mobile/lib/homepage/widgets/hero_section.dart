@@ -11,15 +11,18 @@ class HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      // chevinka: Responsive height untuk Android
-      height: MediaQuery.of(context).size.width > 1024 ? 500 : 350,
-      // chevinka: Responsive untuk Android
+      // chevinka: Responsive height untuk Android - diperkecil
+      height: MediaQuery.of(context).size.width > 1024 ? 400 : (MediaQuery.of(context).size.width > 600 ? 280 : 240),
+      // chevinka: Responsive untuk Android - diperkecil margin
       margin: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
-        vertical: MediaQuery.of(context).size.width > 1024 ? 40 : 24,
+        vertical: MediaQuery.of(context).size.width > 1024 ? 32 : (MediaQuery.of(context).size.width > 600 ? 20 : 16),
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(68),
+        // chevinka: Responsive border radius untuk Android
+        borderRadius: BorderRadius.circular(
+          MediaQuery.of(context).size.width > 1024 ? 68 : (MediaQuery.of(context).size.width > 600 ? 40 : 24),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -29,7 +32,10 @@ class HeroSection extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(68),
+        // chevinka: Responsive border radius untuk Android
+        borderRadius: BorderRadius.circular(
+          MediaQuery.of(context).size.width > 1024 ? 68 : (MediaQuery.of(context).size.width > 600 ? 40 : 24),
+        ),
         child: Stack(
           children: [
             // Background image (kamu bisa ganti dengan NetworkImage jika punya URL)
@@ -92,8 +98,8 @@ class HeroSection extends StatelessWidget {
                     Text(
                       'Satu Langkah ke Arena,\nSeribu Peluang Beraksi',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-                        fontSize: MediaQuery.of(context).size.width > 1024 ? 56 : 32, // Responsive font size
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+                        fontSize: MediaQuery.of(context).size.width > 1024 ? 42 : (MediaQuery.of(context).size.width > 600 ? 28 : 22),
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                         height: 1.33,
@@ -101,30 +107,31 @@ class HeroSection extends StatelessWidget {
                         shadows: [
                           Shadow(
                             color: Colors.black.withValues(alpha: 0.5),
-                            offset: const Offset(0, 4),
-                            blurRadius: 20,
+                            offset: const Offset(0, 2),
+                            blurRadius: 12,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 20 : 16),
                     ElevatedButton(
                       onPressed: onGetStarted,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlueDark.withValues(alpha: 0.8),
+                        backgroundColor: AppColors.primaryBlueDark.withValues(alpha: 0.9),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width > 1024 ? 28 : 24,
+                          vertical: MediaQuery.of(context).size.width > 1024 ? 12 : 10,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
                         ),
+                        elevation: 2,
                       ),
                       child: Text(
                         'GET STARTED',
-                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-                          fontSize: 16,
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+                          fontSize: MediaQuery.of(context).size.width > 1024 ? 14 : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

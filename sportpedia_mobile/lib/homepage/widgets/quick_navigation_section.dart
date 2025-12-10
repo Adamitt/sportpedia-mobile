@@ -8,9 +8,9 @@ class QuickNavigationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // chevinka: Responsive untuk Android
+      // chevinka: Responsive untuk Android - diperkecil
       padding: EdgeInsets.symmetric(
-        vertical: MediaQuery.of(context).size.width > 1024 ? 48 : 32,
+        vertical: MediaQuery.of(context).size.width > 1024 ? 40 : (MediaQuery.of(context).size.width > 600 ? 28 : 24),
         horizontal: MediaQuery.of(context).size.width > 1024 ? 48 : 16,
       ),
       decoration: BoxDecoration(
@@ -42,8 +42,8 @@ class QuickNavigationSection extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     'Explore Features',
-                    style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-                      fontSize: MediaQuery.of(context).size.width > 1024 ? 32 : 24, // Responsive font size
+                    style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+                      fontSize: MediaQuery.of(context).size.width > 1024 ? 28 : (MediaQuery.of(context).size.width > 600 ? 22 : 20),
                       fontWeight: FontWeight.bold,
                       foreground: Paint()
                       ..shader = LinearGradient(
@@ -75,27 +75,27 @@ class QuickNavigationSection extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Choose your path to sports excellence',
-                style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+                style: GoogleFonts.poppins( // chevinka: Gunakan Poppins, sesuaikan color palette
+                  fontSize: MediaQuery.of(context).size.width > 1024 ? 12 : (MediaQuery.of(context).size.width > 600 ? 11 : 10), // chevinka: Responsive font size
+                  color: AppColors.textGrey, // chevinka: Pakai textGrey dari color palette
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 24 : 16),
 
-          // Quick Nav Cards
+          // Quick Nav Cards - chevinka: Perkecil grid
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width > 1024 ? 8 : 4),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.0,
+                crossAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 12 : 8,
+                mainAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 12 : 8,
+                childAspectRatio: MediaQuery.of(context).size.width > 600 ? 1.1 : 1.0, // chevinka: Perkecil aspect ratio
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
@@ -104,23 +104,23 @@ class QuickNavigationSection extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 24 : 16),
 
-          // Fun Facts
+          // Fun Facts - chevinka: Perkecil grid
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width > 1024 ? 8 : 4),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.2,
+                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2, // chevinka: 2 kolom di mobile
+                crossAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 8 : 6,
+                mainAxisSpacing: MediaQuery.of(context).size.width > 1024 ? 8 : 6,
+                childAspectRatio: MediaQuery.of(context).size.width > 600 ? 1.3 : 1.1, // chevinka: Perkecil aspect ratio
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
-                return _buildFunFactCard(index);
+                return _buildFunFactCard(context, index);
               },
             ),
           ),
@@ -135,7 +135,7 @@ class QuickNavigationSection extends StatelessWidget {
         'title': 'Sports Library',
         'description': 'Explore sports fundamentals — history, rules, and beginner guides.',
         'image': 'assets/images/sportlibrary.png',
-        'color': Colors.blue,
+        'color': AppColors.primaryBlueDark, // chevinka: Sesuaikan dengan color palette
         'badge': '50+ Sports',
         'route': '/library',
       },
@@ -159,7 +159,7 @@ class QuickNavigationSection extends StatelessWidget {
         'title': 'Video Gallery',
         'description': 'Learn visually with step-by-step sports tutorials for every level.',
         'image': 'assets/images/video.png',
-        'color': Colors.red,
+        'color': AppColors.accentRed, // chevinka: Sesuaikan dengan color palette
         'badge': '📹 40+ Videos',
         'route': '/videos',
       },
@@ -170,7 +170,7 @@ class QuickNavigationSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        border: Border.all(color: AppColors.textLight, width: 1), // chevinka: Sesuaikan dengan color palette
         color: Colors.white,
         boxShadow: [
           BoxShadow(
@@ -188,6 +188,9 @@ class QuickNavigationSection extends StatelessWidget {
             final route = item['route'] as String;
             if (route == '/gearguide') {
               Navigator.pushNamed(context, '/gearguide');
+            } else if (route == '/videos') {
+              // chevinka: Navigate ke Video Gallery
+              Navigator.pushNamed(context, '/videos');
             } else {
               // Untuk route lain, show coming soon
               ScaffoldMessenger.of(context).showSnackBar(
@@ -199,7 +202,7 @@ class QuickNavigationSection extends StatelessWidget {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 12 : 8), // chevinka: Perkecil padding
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -215,7 +218,7 @@ class QuickNavigationSection extends StatelessWidget {
                     ),
                     child: Text(
                       item['badge'] as String,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         color: item['color'] as Color,
@@ -233,7 +236,7 @@ class QuickNavigationSection extends StatelessWidget {
                     color: (item['color'] as Color).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 8 : 6),
                   child: Image.asset(
                     item['image'] as String,
                     fit: BoxFit.contain,
@@ -241,40 +244,42 @@ class QuickNavigationSection extends StatelessWidget {
                       // Fallback ke icon jika gambar tidak ada
                       return Icon(
                         Icons.category,
-                        size: 28,
+                        size: MediaQuery.of(context).size.width > 1024 ? 28 : 22,
                         color: item['color'] as Color,
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 6 : 4),
 
-                // Title
+                // Title - chevinka: Perkecil font
                 Text(
                   item['title'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+                    fontSize: MediaQuery.of(context).size.width > 1024 ? 13 : (MediaQuery.of(context).size.width > 600 ? 12 : 11),
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: AppColors.textDark,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 4 : 2),
 
-                // Description
+                // Description - chevinka: Perkecil font
                 Expanded(
-                  child: Text(
-                    item['description'] as String,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey.shade600,
-                    ),
+                    child: Text(
+                      item['description'] as String,
+                      style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+                        fontSize: MediaQuery.of(context).size.width > 1024 ? 9 : (MediaQuery.of(context).size.width > 600 ? 8 : 8),
+                        color: AppColors.textGrey,
+                      ),
                     textAlign: TextAlign.center,
-                    maxLines: 3,
+                    maxLines: 2, // chevinka: Kurangi maxLines
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 4 : 2),
 
                 // Button
                 Container(
@@ -290,7 +295,7 @@ class QuickNavigationSection extends StatelessWidget {
                     children: [
                       Text(
                         'Explore',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: item['color'] as Color,
@@ -313,18 +318,18 @@ class QuickNavigationSection extends StatelessWidget {
     );
   }
 
-  Widget _buildFunFactCard(int index) {
+  Widget _buildFunFactCard(BuildContext context, int index) { // chevinka: Tambah BuildContext untuk responsive
     final facts = [
-      {'value': '50+', 'label': 'Sports Covered', 'color': Colors.blue},
+      {'value': '50+', 'label': 'Sports Covered', 'color': AppColors.primaryBlueDark}, // chevinka: Sesuaikan dengan color palette
       {'value': '200+', 'label': 'Active Members', 'color': Colors.purple},
       {'value': '300+', 'label': 'Gear Reviews', 'color': Colors.orange},
-      {'value': '100+', 'label': 'Video Tutorials', 'color': Colors.red},
+      {'value': '100+', 'label': 'Video Tutorials', 'color': AppColors.accentRed}, // chevinka: Sesuaikan dengan color palette
     ];
 
     final fact = facts[index];
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 12 : 8), // chevinka: Perkecil padding
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -344,18 +349,18 @@ class QuickNavigationSection extends StatelessWidget {
         children: [
           Text(
             fact['value'] as String,
-            style: TextStyle(
-              fontSize: 20,
+            style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+              fontSize: MediaQuery.of(context).size.width > 1024 ? 18 : (MediaQuery.of(context).size.width > 600 ? 16 : 14),
               fontWeight: FontWeight.bold,
               color: fact['color'] as Color,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 4 : 2),
           Text(
             fact['label'] as String,
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.grey.shade600,
+            style: GoogleFonts.poppins( // chevinka: Gunakan Poppins - diperkecil
+              fontSize: MediaQuery.of(context).size.width > 1024 ? 9 : 8,
+              color: AppColors.textGrey, // chevinka: Sesuaikan dengan color palette
             ),
             textAlign: TextAlign.center,
             maxLines: 2,

@@ -186,7 +186,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             child: Transform.translate(
               offset: const Offset(0, -60),
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width > 1024 ? 24 : (MediaQuery.of(context).size.width > 600 ? 16 : 12), // chevinka: Responsive horizontal padding untuk avoid kepotong
+                  vertical: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -203,7 +206,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(40),
+                      padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 40 : (MediaQuery.of(context).size.width > 600 ? 24 : 16)), // chevinka: Responsive padding untuk avoid kepotong
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -236,7 +239,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(40),
+                      padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 40 : (MediaQuery.of(context).size.width > 600 ? 24 : 16)), // chevinka: Responsive padding untuk avoid kepotong
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -254,7 +257,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 80),
+                    SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 120 : 100), // chevinka: Bottom padding untuk navbar
                   ],
                 ),
               ),
@@ -331,20 +334,51 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   Widget _buildGearGrid(List<dynamic> gears) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : 
-                       MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        crossAxisSpacing: 24,
-        mainAxisSpacing: 24,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: gears.length,
+    // chevinka: Horizontal scroll dengan tombol geser jika produk banyak
+    if (gears.length <= 1) {
+      // Jika hanya 1 atau kurang, tampilkan tanpa scroll buttons
+      return SizedBox(
+        height: MediaQuery.of(context).size.width > 1024 ? 380 : (MediaQuery.of(context).size.width > 600 ? 320 : 280),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width > 1024 ? 0 : 4),
+          itemCount: gears.length,
+          itemBuilder: (context, index) {
+            final gear = gears[index];
+            return Container(
+              width: MediaQuery.of(context).size.width > 1024 
+                  ? MediaQuery.of(context).size.width / 3.5
+                  : (MediaQuery.of(context).size.width > 600 
+                      ? MediaQuery.of(context).size.width / 2.5
+                      : MediaQuery.of(context).size.width * 0.75),
+              margin: EdgeInsets.only(
+                right: MediaQuery.of(context).size.width > 1024 ? 20 : 12,
+              ),
+              child: _buildGearCard(gear),
+            );
+          },
+        ),
+      );
+    }
+    
+    // Jika banyak produk, tampilkan dengan scroll buttons
+    return _ScrollableGridWithButtons(
+      items: gears,
+      height: MediaQuery.of(context).size.width > 1024 ? 380 : (MediaQuery.of(context).size.width > 600 ? 320 : 280),
       itemBuilder: (context, index) {
         final gear = gears[index];
-        return _buildGearCard(gear);
+        return Container(
+          width: MediaQuery.of(context).size.width > 1024 
+              ? MediaQuery.of(context).size.width / 3.5
+              : (MediaQuery.of(context).size.width > 600 
+                  ? MediaQuery.of(context).size.width / 2.5
+                  : MediaQuery.of(context).size.width * 0.75),
+          margin: EdgeInsets.only(
+            right: MediaQuery.of(context).size.width > 1024 ? 20 : 12,
+          ),
+          child: _buildGearCard(gear),
+        );
       },
     );
   }
@@ -388,16 +422,20 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       ),
               ),
             ),
-            // Content
+            // Content - chevinka: Fix overflow dengan mainAxisSize.min dan Flexible
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(MediaQuery.of(context).size.width > 1024 ? 16 : 12), // chevinka: Responsive padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // chevinka: Fix overflow
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width > 1024 ? 8 : 6,
+                        vertical: MediaQuery.of(context).size.width > 1024 ? 4 : 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -405,45 +443,61 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       child: Text(
                         '⚡ ${gear['sport']?['name'] ?? 'Unknown'}',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: MediaQuery.of(context).size.width > 1024 ? 12 : 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primaryBlueDark,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      gear['name'] ?? '',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryBlueDark,
+                    SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 8 : 6),
+                    Flexible(
+                      child: Text(
+                        gear['name'] ?? '',
+                        style: GoogleFonts.poppins(
+                          fontSize: MediaQuery.of(context).size.width > 1024 ? 16 : 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryBlueDark,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      gear['price_range'] ?? 'Hubungi untuk harga',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                    SizedBox(height: MediaQuery.of(context).size.width > 1024 ? 4 : 2),
+                    Flexible(
+                      child: Text(
+                        gear['price_range'] ?? 'Hubungi untuk harga',
+                        style: GoogleFonts.poppins(
+                          fontSize: MediaQuery.of(context).size.width > 1024 ? 14 : 12,
+                          color: AppColors.textGrey,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min, // chevinka: Fix overflow
                       children: [
-                        Text(
-                          'Lihat Detail',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryBlue,
+                        Flexible(
+                          child: Text(
+                            'Lihat Detail',
+                            style: GoogleFonts.poppins(
+                              fontSize: MediaQuery.of(context).size.width > 1024 ? 14 : 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryBlue,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, size: 16, color: AppColors.primaryBlue),
+                        SizedBox(width: MediaQuery.of(context).size.width > 1024 ? 4 : 2),
+                        Icon(
+                          Icons.arrow_forward,
+                          size: MediaQuery.of(context).size.width > 1024 ? 16 : 14,
+                          color: AppColors.primaryBlue,
+                        ),
                       ],
                     ),
                   ],
@@ -457,20 +511,49 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   Widget _buildSportGrid(List<dynamic> sports) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : 
-                       MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        crossAxisSpacing: 24,
-        mainAxisSpacing: 24,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: sports.length,
+    // chevinka: Horizontal scroll dengan tombol geser jika produk banyak
+    if (sports.length <= 1) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.width > 1024 ? 330 : (MediaQuery.of(context).size.width > 600 ? 280 : 240),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width > 1024 ? 0 : 4),
+          itemCount: sports.length,
+          itemBuilder: (context, index) {
+            final sport = sports[index];
+            return Container(
+              width: MediaQuery.of(context).size.width > 1024 
+                  ? MediaQuery.of(context).size.width / 3.5
+                  : (MediaQuery.of(context).size.width > 600 
+                      ? MediaQuery.of(context).size.width / 2.5
+                      : MediaQuery.of(context).size.width * 0.75),
+              margin: EdgeInsets.only(
+                right: MediaQuery.of(context).size.width > 1024 ? 20 : 12,
+              ),
+              child: _buildSportCard(sport),
+            );
+          },
+        ),
+      );
+    }
+    
+    return _ScrollableGridWithButtons(
+      items: sports,
+      height: MediaQuery.of(context).size.width > 1024 ? 330 : (MediaQuery.of(context).size.width > 600 ? 280 : 240),
       itemBuilder: (context, index) {
         final sport = sports[index];
-        return _buildSportCard(sport);
+        return Container(
+          width: MediaQuery.of(context).size.width > 1024 
+              ? MediaQuery.of(context).size.width / 3.5
+              : (MediaQuery.of(context).size.width > 600 
+                  ? MediaQuery.of(context).size.width / 2.5
+                  : MediaQuery.of(context).size.width * 0.75),
+          margin: EdgeInsets.only(
+            right: MediaQuery.of(context).size.width > 1024 ? 20 : 12,
+          ),
+          child: _buildSportCard(sport),
+        );
       },
     );
   }
@@ -622,6 +705,141 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       tags: [],
       image: gearMap['image']?.toString() ?? '',
       owner: null,
+    );
+  }
+}
+
+// chevinka: StatefulWidget untuk manage scroll buttons
+class _ScrollableGridWithButtons extends StatefulWidget {
+  final List<dynamic> items;
+  final double height;
+  final Widget Function(BuildContext, int) itemBuilder;
+
+  const _ScrollableGridWithButtons({
+    required this.items,
+    required this.height,
+    required this.itemBuilder,
+  });
+
+  @override
+  State<_ScrollableGridWithButtons> createState() => _ScrollableGridWithButtonsState();
+}
+
+class _ScrollableGridWithButtonsState extends State<_ScrollableGridWithButtons> {
+  late ScrollController _scrollController;
+  bool _canScrollLeft = false;
+  bool _canScrollRight = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_updateScrollButtons);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_updateScrollButtons);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _updateScrollButtons() {
+    if (!_scrollController.hasClients) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final newCanScrollLeft = currentScroll > 0;
+    final newCanScrollRight = currentScroll < maxScroll - 1;
+
+    if (newCanScrollLeft != _canScrollLeft || newCanScrollRight != _canScrollRight) {
+      setState(() {
+        _canScrollLeft = newCanScrollLeft;
+        _canScrollRight = newCanScrollRight;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: widget.height,
+      child: Stack(
+        children: [
+          ListView.builder(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width > 1024 ? 0 : 4),
+            itemCount: widget.items.length,
+            itemBuilder: widget.itemBuilder,
+          ),
+          // Left scroll button
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Opacity(
+                opacity: _canScrollLeft ? 1.0 : 0.3,
+                child: IconButton(
+                  onPressed: _canScrollLeft
+                      ? () {
+                          _scrollController.animateTo(
+                            _scrollController.offset - (MediaQuery.of(context).size.width * 0.75),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                  icon: Icon(
+                    Icons.chevron_left,
+                    size: 32,
+                    color: _canScrollLeft ? AppColors.primaryBlueDark : Colors.grey.shade300,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.9),
+                    shape: const CircleBorder(),
+                    elevation: 4,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Right scroll button
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Opacity(
+                opacity: _canScrollRight ? 1.0 : 0.3,
+                child: IconButton(
+                  onPressed: _canScrollRight
+                      ? () {
+                          _scrollController.animateTo(
+                            _scrollController.offset + (MediaQuery.of(context).size.width * 0.75),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                  icon: Icon(
+                    Icons.chevron_right,
+                    size: 32,
+                    color: _canScrollRight ? AppColors.primaryBlueDark : Colors.grey.shade300,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.9),
+                    shape: const CircleBorder(),
+                    elevation: 4,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

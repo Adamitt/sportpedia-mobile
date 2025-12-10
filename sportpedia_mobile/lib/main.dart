@@ -153,8 +153,8 @@ class _HomePageState extends State<HomePage> {
   // List Halaman untuk Bottom Navigation
   List<Widget> get _pages {
     final basePages = <Widget>[
-      // Tab 0: Beranda (Menggunakan HomepageHomeScreen dari import)
-      const HomepageHomeScreen(),
+      // Tab 0: Beranda (Menggunakan HomepageHomeScreen dari import) - chevinka: Pass username
+      HomepageHomeScreen(username: widget.username),
       
       // Tab 1: Gear Guide
       const GearGuidePage(),
@@ -236,6 +236,7 @@ class _HomePageState extends State<HomePage> {
           // Menampilkan Halaman sesuai index yang dipilih
           _pages[_selectedIndex],
           
+          // chevinka: Bottom Navigation Bar dari modul temen (accounts/profile module)
           // Modern Bottom Nav (Floating di bawah)
           Positioned(
             left: 20,

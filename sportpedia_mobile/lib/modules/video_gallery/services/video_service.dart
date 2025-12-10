@@ -9,7 +9,9 @@ import '../models/video.dart';
 import '../models/comment.dart';
 
 // Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
+// chevinka: Tambah stub file untuk Android/iOS support
+// import 'dart:html' as html if (dart.library.html) 'dart:html';
+import '../../../stub/html_stub.dart' as html if (dart.library.io) '../../../stub/html_stub.dart'; // chevinka: Stub untuk Android/iOS (dart.library.io = mobile)
 
 /// Service untuk memanggil API katalog video (list & detail).
 class VideoService {

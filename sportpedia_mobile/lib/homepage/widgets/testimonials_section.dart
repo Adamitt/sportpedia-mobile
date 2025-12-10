@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/testimonial.dart';
@@ -20,12 +20,11 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
   String? _error;
   String _categoryFilter = 'all';
   int _currentIndex = 0;
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(viewportFraction: 0.9);
 
   @override
   void initState() {
     super.initState();
-    // Load testimonials after frame is built so context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadTestimonials();
@@ -46,7 +45,6 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
     });
 
     try {
-      // Get CookieRequest from context to send cookies
       final request = context.read<CookieRequest>();
       final testimonials = await HomepageApiService.getTestimonials(
         request: request,
@@ -88,7 +86,6 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
       builder: (context) => AddTestimonialDialog(
         request: request,
         onSuccess: (testimonial) {
-          // Reload testimonials setelah berhasil add
           _loadTestimonials();
         },
       ),
@@ -97,83 +94,44 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
 
   void _showEditDialog(BuildContext context, Testimonial testimonial) {
     final request = context.read<CookieRequest>();
-    
-    // Double check: pastikan user sudah login
-    if (!request.loggedIn) {
+    if (!request.loggedIn || !testimonial.isOwner) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Anda harus login terlebih dahulu untuk mengedit testimonial'),
-          backgroundColor: Colors.red,
-        ),
+            content: Text('Akses ditolak'), backgroundColor: Colors.red),
       );
       return;
     }
-    
-    // Double check: pastikan ini adalah testimonial milik user
-    if (!testimonial.isOwner) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda hanya dapat mengedit testimonial milik Anda sendiri'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
+
     showDialog(
       context: context,
       builder: (context) => AddTestimonialDialog(
         testimonial: testimonial,
         request: request,
         onSuccess: (updatedTestimonial) {
-          // Reload testimonials setelah berhasil edit
           _loadTestimonials();
         },
       ),
     );
   }
 
-  Future<void> _showDeleteConfirmation(BuildContext context, Testimonial testimonial) async {
+  Future<void> _showDeleteConfirmation(
+      BuildContext context, Testimonial testimonial) async {
     final request = context.read<CookieRequest>();
-    
-    // Double check: pastikan user sudah login
-    if (!request.loggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda harus login terlebih dahulu untuk menghapus testimonial'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    // Double check: pastikan ini adalah testimonial milik user
-    if (!testimonial.isOwner) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda hanya dapat menghapus testimonial milik Anda sendiri'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
+    if (!request.loggedIn || !testimonial.isOwner) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Testimonial'),
-        content: const Text('Apakah Anda yakin ingin menghapus testimonial ini?'),
+        content: const Text('Yakin ingin menghapus?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Batal'),
-          ),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal')),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             child: const Text('Hapus'),
           ),
         ],
@@ -183,26 +141,17 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
     if (confirmed == true) {
       try {
         await HomepageApiService.deleteTestimonial(
-          id: testimonial.id,
-          request: request,
-        );
+            id: testimonial.id, request: request);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Testimonial berhasil dihapus'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Berhasil dihapus'),
+              backgroundColor: Colors.green));
           _loadTestimonials();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal menghapus testimonial: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Gagal: $e'), backgroundColor: Colors.red));
         }
       }
     }
@@ -210,96 +159,78 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 1024;
+    final isMobile = screenWidth <= 600;
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      padding: EdgeInsets.only(
+        top: isDesktop ? 40 : 24,
+        bottom: isDesktop
+            ? 80
+            : 60,
+        left: 16,
+        right: 16,
+      ),
       child: Column(
         children: [
-          // Header dengan tombol Add - sesuai Django
-          Column(
-            children: [
-              ShaderMask(
-                shaderCallback: (bounds) {
-                  return LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primaryBlueDark,
-                      const Color(0xFF3b5998),
-                      AppColors.primaryBlueDark,
-                    ],
-                  ).createShader(bounds);
-                },
-                blendMode: BlendMode.srcIn,
-                child: const Text(
-                  'TESTIMONI',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
+          // --- HEADER SECTION ---
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [AppColors.primaryBlueDark, const Color(0xFF3b5998)],
+            ).createShader(bounds),
+            blendMode: BlendMode.srcIn,
+            child: Text(
+              'TESTIMONI',
+              style: GoogleFonts.poppins(
+                fontSize: isDesktop ? 32 : 24,
+                fontWeight: FontWeight.w900,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Andalan banyak orang, bisa jadi andalanmu',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Tombol Add - hanya show jika sudah login (sesuai Django template)
-              Consumer<CookieRequest>(
-                builder: (context, request, _) {
-                  if (request.loggedIn) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _showAddDialog(context),
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
-                          label: const Text('+ share your testimonials!'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primaryBlueDark,
-                            side: BorderSide(
-                              color: AppColors.primaryBlueDark,
-                              width: 2,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else {
-                    // Show pesan "Login untuk membagikan testimonial" jika belum login
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Login untuk membagikan testimonial.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                },
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Kata mereka tentang Sportpedia',
+            style: GoogleFonts.poppins(
+              fontSize: isDesktop ? 14 : 12,
+              color: AppColors.textGrey,
+            ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // Filter Chips
+          // Tombol Add Testimonial
+          Consumer<CookieRequest>(
+            builder: (context, request, _) {
+              if (request.loggedIn) {
+                return ElevatedButton.icon(
+                  onPressed: () => _showAddDialog(context),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text('Bagikan Ceritamu',
+                      style: GoogleFonts.poppins(fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColors.primaryBlueDark,
+                    side:
+                        BorderSide(color: AppColors.primaryBlueDark, width: 1.5),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                );
+              }
+              return Text(
+                'Login untuk berbagi pengalaman.',
+                style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+              );
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // --- FILTER CHIPS ---
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -311,7 +242,7 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
                 const SizedBox(width: 8),
                 _buildFilterChip('community', 'Community'),
                 const SizedBox(width: 8),
-                _buildFilterChip('gearguide', 'Gear Guide'),
+                _buildFilterChip('gearguide', 'Gear'),
                 const SizedBox(width: 8),
                 _buildFilterChip('video', 'Video'),
               ],
@@ -320,180 +251,160 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
 
           const SizedBox(height: 24),
 
-          // Testimonials Frame (sesuai Django)
+          // --- MAIN FRAME & CAROUSEL ---
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryBlueDark.withValues(alpha: 0.08),
-                  AppColors.primaryBlueDark.withValues(alpha: 0.12),
+                  AppColors.primaryBlueDark.withValues(alpha: 0.05),
+                  AppColors.primaryBlueDark.withValues(alpha: 0.1),
                 ],
               ),
-              borderRadius: BorderRadius.circular(76),
+              borderRadius: BorderRadius.circular(40),
               border: Border.all(
-                color: AppColors.primaryBlueDark.withValues(alpha: 0.2),
-                width: 2,
+                color: AppColors.primaryBlueDark.withValues(alpha: 0.15),
+                width: 1.5,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryBlueDark.withValues(alpha: 0.15),
-                  blurRadius: 40,
-                  offset: const Offset(0, 10),
-                ),
-              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               children: [
-                // Testimonials Carousel
                 if (_isLoading)
                   const SizedBox(
-                    height: 300,
-                    child: Center(child: CircularProgressIndicator()),
-                  )
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()))
                 else if (_error != null)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    height: 300,
+                  SizedBox(
+                    height: 200,
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline,
-                              size: 48, color: Colors.red.shade300),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading testimonials',
-                            style: TextStyle(color: Colors.red.shade700),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: _loadTestimonials,
-                            child: const Text('Retry'),
-                          ),
-                        ],
+                      child: TextButton.icon(
+                        onPressed: _loadTestimonials,
+                        icon: const Icon(Icons.refresh, color: Colors.red),
+                        label: const Text('Coba Lagi',
+                            style: TextStyle(color: Colors.red)),
                       ),
                     ),
                   )
                 else if (_testimonials.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    height: 300,
-                    child: const Center(
-                      child: Text(
-                        'Belum ada testimonial',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
+                  const SizedBox(
+                    height: 150,
+                    child: Center(
+                        child: Text('Belum ada testimonial',
+                            style: TextStyle(color: Colors.grey))),
                   )
                 else
+                  // chevinka: Tambah tombol navigasi kiri-kanan untuk testimonials
                   SizedBox(
-                    height: 480,
+                    height: isDesktop ? 420 : (isMobile ? 400 : 380),
                     child: Stack(
                       children: [
-                        // Carousel
                         PageView.builder(
                           controller: _pageController,
                           onPageChanged: _onPageChanged,
                           itemCount: _testimonials.length,
                           itemBuilder: (context, index) {
-                            final testimonial = _testimonials[index];
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: _buildTestimonialCard(testimonial),
+                              child: _buildTestimonialCard(
+                                  _testimonials[index], isMobile),
                             );
                           },
                         ),
-
-                        // Navigation Arrows
-                        if (_testimonials.length > 1) ...[
-                          Positioned(
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            child: Center(
-                              child: IconButton(
-                                onPressed: _currentIndex > 0
-                                    ? () {
-                                        _pageController.previousPage(
-                                          duration: const Duration(milliseconds: 300),
-                                          curve: Curves.easeInOut,
-                                        );
-                                      }
-                                    : null,
-                                icon: Icon(
-                                  Icons.chevron_left,
-                                  size: 32,
-                                  color: _currentIndex > 0
-                                      ? AppColors.primaryBlue
-                                      : Colors.grey.shade300,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  shape: const CircleBorder(),
-                                  elevation: 4,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            child: Center(
-                              child: IconButton(
-                                onPressed: _currentIndex < _testimonials.length - 1
-                                    ? () {
-                                        _pageController.nextPage(
-                                          duration: const Duration(milliseconds: 300),
-                                          curve: Curves.easeInOut,
-                                        );
-                                      }
-                                    : null,
-                                icon: Icon(
-                                  Icons.chevron_right,
-                                  size: 32,
-                                  color: _currentIndex < _testimonials.length - 1
-                                      ? AppColors.primaryBlue
-                                      : Colors.grey.shade300,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  shape: const CircleBorder(),
-                                  elevation: 4,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-
-                        // Page Indicators
+                        // Left navigation button
                         if (_testimonials.length > 1)
                           Positioned(
-                            bottom: 16,
                             left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                _testimonials.length,
-                                (index) => Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: _currentIndex == index ? 24 : 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: _currentIndex == index
-                                        ? AppColors.primaryBlue
+                            top: 0,
+                            bottom: 0,
+                            child: Center(
+                              child: Opacity(
+                                opacity: _currentIndex > 0 ? 1.0 : 0.3,
+                                child: IconButton(
+                                  onPressed: _currentIndex > 0
+                                      ? () {
+                                          _pageController.previousPage(
+                                            duration: const Duration(milliseconds: 300),
+                                            curve: Curves.easeInOut,
+                                          );
+                                        }
+                                      : null,
+                                  icon: Icon(
+                                    Icons.chevron_left,
+                                    size: 32,
+                                    color: _currentIndex > 0
+                                        ? AppColors.primaryBlueDark
                                         : Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.white.withOpacity(0.9),
+                                    shape: const CircleBorder(),
+                                    elevation: 4,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Right navigation button
+                        if (_testimonials.length > 1)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Center(
+                              child: Opacity(
+                                opacity: _currentIndex < _testimonials.length - 1 ? 1.0 : 0.3,
+                                child: IconButton(
+                                  onPressed: _currentIndex < _testimonials.length - 1
+                                      ? () {
+                                          _pageController.nextPage(
+                                            duration: const Duration(milliseconds: 300),
+                                            curve: Curves.easeInOut,
+                                          );
+                                        }
+                                      : null,
+                                  icon: Icon(
+                                    Icons.chevron_right,
+                                    size: 32,
+                                    color: _currentIndex < _testimonials.length - 1
+                                        ? AppColors.primaryBlueDark
+                                        : Colors.grey.shade300,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.white.withOpacity(0.9),
+                                    shape: const CircleBorder(),
+                                    elevation: 4,
                                   ),
                                 ),
                               ),
                             ),
                           ),
                       ],
+                    ),
+                  ),
+
+                // Indikator Titik
+                if (!_isLoading && _testimonials.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        _testimonials.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: _currentIndex == index ? 20 : 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: _currentIndex == index
+                                ? AppColors.primaryBlue
+                                : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
               ],
@@ -509,361 +420,184 @@ class _TestimonialsSectionState extends State<TestimonialsSection> {
     return GestureDetector(
       onTap: () => _onCategoryChanged(category),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          gradient: isActive
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primaryBlue,
-                    AppColors.primaryBlueDark,
-                  ],
-                )
-              : LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white,
-                    const Color(0xFFF0F9FF),
-                  ],
-                ),
-          borderRadius: BorderRadius.circular(9999),
+          color: isActive ? AppColors.primaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.primaryBlue,
-            width: 2,
-          ),
+              color: isActive ? AppColors.primaryBlue : Colors.grey.shade300),
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
+                      color: AppColors.primaryBlue.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3))
                 ]
-              : [
-                  BoxShadow(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              : null,
         ),
-        transform: Matrix4.identity()
-          ..translate(0.0, isActive ? -3.0 : 0.0),
         child: Text(
           label,
-          style: TextStyle(
-            color: isActive ? Colors.white : AppColors.primaryBlueDark,
+          style: GoogleFonts.poppins(
+            color: isActive ? Colors.white : Colors.grey.shade700,
             fontWeight: FontWeight.w600,
-            fontSize: 14,
-            letterSpacing: 0.5,
+            fontSize: 12,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTestimonialCard(Testimonial testimonial) {
+  Widget _buildTestimonialCard(Testimonial testimonial, bool isMobile) {
     return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlueDark.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
-            spreadRadius: 0,
           ),
         ],
       ),
+      // [FIX 2] PADDING DIPERKECIL
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Top Section: Image + Quote Icon + Text
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Image Testimonial (jika ada)
-                  if (testimonial.imageUrl.isNotEmpty)
-                    Center(
-                      child: Container(
-                        width: 200,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            testimonial.imageUrl,
-                            fit: BoxFit.contain,
-                            headers: const {
-                              'Accept': 'image/*',
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                color: Colors.grey.shade200,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                    strokeWidth: 2,
-                                    color: AppColors.primaryBlue,
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading testimonial image: $error');
-                              print('Image URL: ${testimonial.imageUrl}');
-                              return Container(
-                                color: Colors.grey.shade200,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.image_not_supported,
-                                        color: Colors.grey.shade400,
-                                        size: 36,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Gambar tidak bisa dimuat',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey.shade500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (testimonial.imageUrl.isNotEmpty) const SizedBox(height: 16),
-
-                  // Quote Icon
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.format_quote,
-                      color: AppColors.primaryBlue,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Text
-                  Expanded(
-                    child: Text(
-                      testimonial.text,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey.shade700,
-                        height: 1.6,
-                        letterSpacing: 0.2,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: testimonial.imageUrl.isNotEmpty ? 4 : 5,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Bottom Section: User Info + Category
-            Column(
-              children: [
-                // Divider
+        padding: const EdgeInsets.all(16),
+        // [FIX 3] SINGLE CHILD SCROLL VIEW
+        // Bungkus semua isi kartu dengan ScrollView
+        // Jadi kalau kontennya panjang banget, dia bakal bisa di-scroll, GAK ERROR.
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // Biar ga maksa full height
+            children: [
+              // --- GAMBAR ---
+              if (testimonial.imageUrl.isNotEmpty)
                 Container(
-                  height: 1,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        Colors.grey.shade300,
-                        Colors.transparent,
+                  // Batasi tinggi gambar maksimal 120px
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      testimonial.imageUrl,
+                      fit: BoxFit.contain, // Contain biar gambar utuh
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 80,
+                        color: Colors.grey.shade100,
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // --- QUOTE ICON ---
+              Icon(Icons.format_quote,
+                  color: AppColors.primaryBlue.withOpacity(0.3), size: 24),
+              const SizedBox(height: 8),
+
+              // --- TEXT TESTIMONI ---
+              Text(
+                testimonial.text,
+                style: GoogleFonts.poppins(
+                  fontSize: isMobile ? 12 : 13,
+                  color: Colors.black87,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 16),
+              Divider(height: 1, thickness: 0.5, color: Colors.grey.shade200),
+              const SizedBox(height: 16),
+
+              // --- USER INFO & ACTIONS ---
+              Row(
+                children: [
+                  // Avatar - chevinka: Foto testimonial hanya untuk display, bukan photo profile
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
+                    // chevinka: Tampilkan foto dari testimonial jika ada (hanya untuk display testimonial card)
+                    backgroundImage: testimonial.imageUrl.isNotEmpty
+                        ? NetworkImage(testimonial.imageUrl)
+                        : null,
+                    child: testimonial.imageUrl.isEmpty
+                        ? Text(testimonial.user[0].toUpperCase(),
+                            style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryBlue))
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Info User
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          testimonial.user,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${testimonial.category.toUpperCase()} • ${testimonial.createdAt.split(' ')[0]}',
+                          style: GoogleFonts.poppins(
+                              fontSize: 10, color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),
-                ),
 
-                // User Info Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Avatar
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryBlue.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 22,
-                        backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-                        backgroundImage: testimonial.imageUrl.isNotEmpty
-                            ? NetworkImage(testimonial.imageUrl)
-                            : null,
-                        child: testimonial.imageUrl.isEmpty
-                            ? Text(
-                                testimonial.user[0].toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryBlueDark,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // User Name & Category
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            testimonial.user,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryBlueDark,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryBlue.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  testimonial.category.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.primaryBlueDark,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                testimonial.createdAt,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            
-            // Edit/Delete buttons - hanya muncul jika isOwner DAN user sudah login
-            Consumer<CookieRequest>(
-              builder: (context, request, _) {
-                if (testimonial.isOwner && request.loggedIn) {
-                  return Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Edit button
-                          ElevatedButton.icon(
-                            onPressed: () => _showEditDialog(context, testimonial),
-                            icon: const Icon(Icons.edit, size: 16),
-                            label: const Text('Edit'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryBlueDark,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Delete button
-                          OutlinedButton.icon(
-                            onPressed: () => _showDeleteConfirmation(context, testimonial),
-                            icon: const Icon(Icons.delete, size: 16),
-                            label: const Text('Hapus'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+                  // Tombol Action
+                  Consumer<CookieRequest>(
+                    builder: (context, request, _) {
+                      if (testimonial.isOwner && request.loggedIn) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _actionButton(Icons.edit, Colors.blue,
+                                () => _showEditDialog(context, testimonial)),
+                            const SizedBox(width: 8),
+                            _actionButton(
+                                Icons.delete,
+                                Colors.red,
+                                () => _showDeleteConfirmation(
+                                    context, testimonial)),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _actionButton(IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 16, color: color),
       ),
     );
   }
 }
-

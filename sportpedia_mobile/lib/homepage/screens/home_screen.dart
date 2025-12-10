@@ -4,10 +4,12 @@ import '../widgets/popular_categories_section.dart';
 import '../widgets/quick_navigation_section.dart';
 import '../widgets/testimonials_section.dart';
 import '../widgets/greeting_section.dart';
-import '../widgets/navbar.dart';
+import '../widgets/simple_header.dart'; // chevinka: Header sederhana dengan search expand
 
 class HomepageHomeScreen extends StatefulWidget {
-  const HomepageHomeScreen({super.key});
+  final String? username; // chevinka: Username untuk greeting section
+
+  const HomepageHomeScreen({super.key, this.username});
 
   @override
   State<HomepageHomeScreen> createState() => _HomepageHomeScreenState();
@@ -30,14 +32,14 @@ class _HomepageHomeScreenState extends State<HomepageHomeScreen> {
       body: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // Navbar sesuai Django
+            // chevinka: Simple header dengan search button (navbar dari temen sudah di bottom nav)
             SliverToBoxAdapter(
-              child: const HomeNavBar(),
+              child: const SimpleHeader(),
             ),
 
-          // Greeting Section
-          const SliverToBoxAdapter(
-            child: GreetingSection(),
+          // Greeting Section - chevinka: Pass username untuk greeting dinamis
+          SliverToBoxAdapter(
+            child: GreetingSection(username: widget.username),
           ),
 
           // Hero Section

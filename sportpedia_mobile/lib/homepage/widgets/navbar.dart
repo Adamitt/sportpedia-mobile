@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart'; // chevinka: Google Fonts untuk konsistensi dengan angie
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -7,8 +6,8 @@ import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../../profile_app/screens/profile_screen.dart';
 
-// Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
+// chevinka: Conditional import for web - hanya untuk web platform
+// Tidak perlu untuk Android, sudah dihapus untuk avoid error
 
 class HomeNavBar extends StatefulWidget {
   const HomeNavBar({super.key});
@@ -108,12 +107,14 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         children: [
                           Image.asset(
                             'assets/images/logo1.png',
-                            width: 56,
-                            height: 56,
+                            // chevinka: Responsive logo size untuk Android
+                            width: MediaQuery.of(context).size.width > 1024 ? 56 : (MediaQuery.of(context).size.width > 600 ? 48 : 40),
+                            height: MediaQuery.of(context).size.width > 1024 ? 56 : (MediaQuery.of(context).size.width > 600 ? 48 : 40),
                             errorBuilder: (context, error, stackTrace) {
+                              final logoSize = MediaQuery.of(context).size.width > 1024 ? 56.0 : (MediaQuery.of(context).size.width > 600 ? 48.0 : 40.0);
                               return Container(
-                                width: 56,
-                                height: 56,
+                                width: logoSize,
+                                height: logoSize,
                                 decoration: BoxDecoration(
                                   color: AppColors.primaryBlue,
                                   borderRadius: BorderRadius.circular(8),
@@ -124,18 +125,18 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                     style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                                      fontSize: logoSize * 0.36, // Responsive font size
                                     ),
                                   ),
                                 ),
                               );
                             },
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: MediaQuery.of(context).size.width > 1024 ? 12 : (MediaQuery.of(context).size.width > 600 ? 10 : 8)),
                           RichText(
                             text: TextSpan(
-                              style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-                                fontSize: 24,
+                              style: GoogleFonts.poppins( // chevinka: Gunakan Poppins, responsive untuk Android
+                                fontSize: MediaQuery.of(context).size.width > 1024 ? 24 : (MediaQuery.of(context).size.width > 600 ? 20 : 18),
                                 fontWeight: FontWeight.w900,
                               ),
                               children: [
@@ -166,22 +167,23 @@ class _HomeNavBarState extends State<HomeNavBar> {
                       builder: (context, constraints) {
                         if (constraints.maxWidth > 768) {
                           return SizedBox(
-                            width: 300,
+                            // chevinka: Responsive search bar width untuk Android
+                            width: MediaQuery.of(context).size.width > 1024 ? 300 : (MediaQuery.of(context).size.width > 600 ? 250 : 200),
                             child: TextField(
                               controller: _searchController,
                               decoration: InputDecoration(
                                 hintText: 'Cari olahraga, perlengkapan, atau video...',
-                                hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500), // chevinka: Gunakan Poppins
-                                prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                                hintStyle: GoogleFonts.poppins(color: AppColors.textGrey), // chevinka: Gunakan Poppins, sesuaikan color palette
+                                prefixIcon: Icon(Icons.search, color: AppColors.textGrey), // chevinka: Sesuaikan color palette
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(999),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(color: AppColors.textLight), // chevinka: Sesuaikan color palette
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(999),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(color: AppColors.textLight), // chevinka: Sesuaikan color palette
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(999),
@@ -232,13 +234,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               TextButton(
                                 onPressed: () async {
                                   // Logout
+                                  // chevinka: Untuk Android, logout cukup menggunakan CookieRequest, tidak perlu manual clear cookie
                                   await request.logout("http://localhost:8000/landingpage/api/logout/");
-                                  
-                                  // For Flutter Web, manually clear session cookie
-                                  if (kIsWeb) {
-                                    html.document.cookie = 'sessionid=; Path=/; SameSite=None; Secure=false; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                                    print('[DEBUG] Logout - Cleared session cookie');
-                                  }
                                   
                                   if (mounted) {
                                     Navigator.pushReplacementNamed(context, '/');
@@ -369,14 +366,14 @@ class _HomeNavBarState extends State<HomeNavBar> {
             ),
           ),
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins( // chevinka: Gunakan Poppins
-            color: Colors.grey.shade800,
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+          child: Text(
+            label,
+            style: GoogleFonts.poppins( // chevinka: Gunakan Poppins, sesuaikan color palette
+              color: AppColors.textDark, // chevinka: Pakai textDark dari color palette
+              fontWeight: FontWeight.w600,
+              fontSize: MediaQuery.of(context).size.width > 1024 ? 16 : (MediaQuery.of(context).size.width > 600 ? 14 : 12), // chevinka: Responsive font size
+            ),
           ),
-        ),
       ),
     );
   }
