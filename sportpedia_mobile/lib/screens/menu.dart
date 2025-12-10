@@ -5,7 +5,6 @@ import 'package:sportpedia_mobile/screens/gearguide_page.dart';
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
-  // Bisa diubah ke data asli lo
   final String nama = "Enji Sportpedia";
   final String npm = "2406XXXXXX";
   final String kelas = "PBP A";
@@ -84,7 +83,6 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-// ===== InfoCard =====
 
 class InfoCard extends StatelessWidget {
   final String title;

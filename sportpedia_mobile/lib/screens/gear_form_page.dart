@@ -4,8 +4,7 @@ import 'package:sportpedia_mobile/services/gearguide_service.dart';
 import 'package:sportpedia_mobile/models/gear_list.dart';
 
 class GearFormPage extends StatefulWidget {
-  final Datum? gear; // Tambahkan parameter optional untuk edit mode
-  
+  final Datum? gear; 
   const GearFormPage({super.key, this.gear});
 
   @override
@@ -16,11 +15,9 @@ class _GearFormPageState extends State<GearFormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
   
-  // ✅ VARIBEL BARU UNTUK SPORTS API
   List<Map<String, String>> _sportChoices = [];
-  bool _sportsLoading = true; // State untuk loading daftar sport
+  bool _sportsLoading = true; 
 
-  // Controllers untuk menyimpan nilai awal saat edit
   late TextEditingController _nameController;
   late TextEditingController _functionController;
   late TextEditingController _descriptionController;
@@ -35,13 +32,9 @@ class _GearFormPageState extends State<GearFormPage> {
   String _sportId = '';
   String _level = 'beginner';
 
-  // ❌ HAPUS: Daftar _sportChoices yang hardcoded sudah dihapus di sini.
-
   @override
   void initState() {
     super.initState();
-    
-    // Inisialisasi controllers dengan data dari gear jika ada (edit mode)
     _nameController = TextEditingController(text: widget.gear?.name ?? '');
     _functionController = TextEditingController(text: widget.gear?.function ?? '');
     _descriptionController = TextEditingController(text: widget.gear?.description ?? '');
@@ -59,16 +52,11 @@ class _GearFormPageState extends State<GearFormPage> {
       text: widget.gear?.tags.join(', ') ?? ''
     );
     
-    // Panggil fungsi untuk ambil data sport dari API
     _fetchSports();
 
-    // Set level jika edit mode
     if (widget.gear != null) {
-      // ✅ PERBAIKAN: Asumsi sportId sudah tersedia sebagai string di objek gear.
-      // Jika di backend sportId berupa integer, Anda mungkin perlu .toString()
       _sportId = widget.gear!.sportId.toString(); 
       
-      // Konversi levelDisplay ke level yang sesuai dengan form
       final levelDisplay = widget.gear!.levelDisplay.toLowerCase();
       if (levelDisplay.contains('pemula') || levelDisplay.contains('beginner')) {
         _level = 'beginner';
@@ -80,18 +68,15 @@ class _GearFormPageState extends State<GearFormPage> {
     }
   }
 
-  // ✅ FUNGSI BARU: Ambil daftar sport dari API
   Future<void> _fetchSports() async {
     try {
-      // Pastikan GearGuideService.getSports() sudah ada
       final List<Map<String, String>> fetchedSports = await GearGuideService.getSports(); 
       
       if (mounted) {
         setState(() {
           _sportChoices = fetchedSports;
           _sportsLoading = false;
-          
-          // Set nilai default/awal untuk mode Add jika belum ada sport terpilih
+
           if (widget.gear == null && _sportChoices.isNotEmpty && _sportId.isEmpty) {
              _sportId = _sportChoices.first['id'] ?? '';
           }
@@ -101,7 +86,6 @@ class _GearFormPageState extends State<GearFormPage> {
       if (mounted) {
         setState(() => _sportsLoading = false);
       }
-      // Tampilkan error jika gagal load sport
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load sport list: $e')),
       );
@@ -180,9 +164,8 @@ class _GearFormPageState extends State<GearFormPage> {
     required List<DropdownMenuItem<String>> items,
     required Function(String?) onChanged,
     String? Function(String?)? validator,
-    required bool isLoading, // ✅ Tambahkan parameter isLoading
+    required bool isLoading, 
   }) {
-    // Tentukan item yang akan ditampilkan saat loading
     final dropdownItems = isLoading 
       ? [
           const DropdownMenuItem<String>(
@@ -192,16 +175,13 @@ class _GearFormPageState extends State<GearFormPage> {
         ]
       : items;
 
-    // Tentukan nilai default. Gunakan null jika loading atau value kosong
     final displayValue = isLoading ? null : (value.isEmpty ? null : value);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        // Value: Diatur berdasarkan displayValue
         value: displayValue, 
-        
-        // Disabled: Tidak bisa diubah saat loading
+      
         onChanged: isLoading ? null : onChanged, 
         
         style: GoogleFonts.poppins(
@@ -217,8 +197,7 @@ class _GearFormPageState extends State<GearFormPage> {
           prefixIcon: Icon(icon, color: const Color(0xFF3B82F6), size: 20),
           filled: true,
           fillColor: const Color(0xFFF8FAFC),
-          
-          // Warna border akan berubah jika disabled (saat loading)
+        
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: isLoading ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),

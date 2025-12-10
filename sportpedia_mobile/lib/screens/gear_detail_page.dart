@@ -8,7 +8,6 @@ class GearDetailPage extends StatelessWidget {
 
   const GearDetailPage({super.key, required this.datum});
 
-  // Warna sesuai design system kita (Login, Register, GearGuide)
   static const Color primaryDark = Color(0xFF1C3264);
   static const Color primaryMid = Color(0xFF2A4B97);
   static const Color primaryBlue = Color(0xFF3B82F6);
