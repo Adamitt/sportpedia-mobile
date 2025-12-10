@@ -6,6 +6,9 @@ import '../theme/app_colors.dart';
 import '../../screens/gear_detail_page.dart';
 import '../../models/gear_list.dart';
 import '../../services/gearguide_service.dart';
+// TAMBAHAN: Import untuk navigate ke detail sport (from sport library module)
+import '../../sport_library/models/sport.dart';
+import '../../sport_library/screens/sport_detail.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String query;
@@ -481,11 +484,41 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
-          // TAMBAHAN: Sport library belum tersedia di Flutter, tampilkan pesan
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Detail olahraga "${sport['name'] ?? ''}" belum tersedia di aplikasi mobile'),
-              duration: const Duration(seconds: 2),
+          // Navigate ke sport detail page yang existing (milik sport library module)
+          final sportId = sport['id'];
+          final sportName = sport['name'] ?? '';
+          
+          if (sportId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Sport ID tidak ditemukan'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
+          // Create Sport object dari search result untuk pass ke detail page
+          final sportObj = Sport(
+            id: sportId,
+            name: sportName,
+            category: sport['category'] ?? 'Unknown',
+            difficulty: sport['difficulty'] ?? 'Unknown',
+            description: sport['description'] ?? '',
+            history: sport['history'] ?? '',
+            rules: List<String>.from(sport['rules'] ?? []),
+            techniques: List<String>.from(sport['techniques'] ?? []),
+            benefits: List<String>.from(sport['benefits'] ?? []),
+            popularCountries: List<String>.from(sport['popular_countries'] ?? []),
+            tags: List<String>.from(sport['tags'] ?? []),
+            image: sport['image'] ?? '',
+            isSaved: sport['is_saved'] ?? false,
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SportDetailPage(sport: sportObj),
             ),
           );
         },
