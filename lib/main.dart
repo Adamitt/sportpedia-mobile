@@ -84,6 +84,8 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const GearGuidePage());
             case '/videos':
               return MaterialPageRoute(builder: (_) => const VideoGalleryPage());
+            case '/sportlibrary':
+              return MaterialPageRoute(builder: (_) => const SportListPage(isAdmin: false));
 
             // Features Code 2 (Profile & Admin)
             case '/profile':
