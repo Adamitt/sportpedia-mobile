@@ -2,24 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// ===================== IMPORT SCREEN =====================
-// Accounts
 import 'accounts/screens/login.dart';
 import 'accounts/screens/register.dart';
-
-// Profile_app
 import 'profile_app/screens/profile_screen.dart';
 import 'profile_app/screens/activity_history_screen.dart';
 import 'profile_app/screens/account_settings_screen.dart';
-
-// Admin_sportpedia
 import 'admin_sportpedia/screens/admin_dashboard_screen.dart';
 import 'admin_sportpedia/screens/manage_admin_screen.dart';
-
-// Gearguide (SPORTPEDIA GEAR)
 import 'screens/gearguide_page.dart';
-// =========================================================
+import 'homepage/screens/home_screen.dart';
+import 'homepage/screens/search_results_page.dart'; 
+import 'modules/video_gallery/screens/video_gallery_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,13 +21,16 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Warna Utama Aplikasi (Sesuai Login Page)
+  // Warna Utama Aplikasi (Sesuai Design System)
   static const Color primaryDark = Color(0xFF1C3264);
 
   @override
   Widget build(BuildContext context) {
     return Provider(
-      create: (_) => CookieRequest(),
+      create: (_) {
+        CookieRequest request = CookieRequest();
+        return request;
+      },
       child: MaterialApp(
         title: 'SportPedia',
         debugShowCheckedModeBanner: false,
@@ -54,6 +50,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/login',
 
         onGenerateRoute: (settings) {
+          // Route default '/' dengan argumen
           if (settings.name == '/') {
             final args = settings.arguments as Map<String, dynamic>?;
 
@@ -65,6 +62,7 @@ class MyApp extends StatelessWidget {
             );
           }
 
+          // Route switch case
           switch (settings.name) {
             case '/login':
               return MaterialPageRoute(builder: (_) => const LoginPage());
@@ -98,6 +96,23 @@ class MyApp extends StatelessWidget {
             case '/gearguide':
               return MaterialPageRoute(
                 builder: (_) => const GearGuidePage(),
+              );
+            
+            case '/videos':
+              return MaterialPageRoute(
+                builder: (_) => const VideoGalleryPage(),
+              );
+
+            // LOGIC SEARCH (Dari kode pertama)
+            case '/search':
+              final arguments = settings.arguments;
+              if (arguments is String) {
+                return MaterialPageRoute(
+                  builder: (_) => SearchResultsPage(query: arguments),
+                );
+              }
+              return MaterialPageRoute(
+                builder: (_) => const SearchResultsPage(query: ''),
               );
 
             default:
@@ -135,29 +150,19 @@ class _HomePageState extends State<HomePage> {
   static const Color primaryRed = Color(0xFF992626);  // Merah
   static const Color textGrey = Color(0xFF6C7278);
 
+  // List Halaman untuk Bottom Navigation
   List<Widget> get _pages {
     final basePages = <Widget>[
-      const PlaceholderPage(
-        title: 'Beranda',
-        icon: Icons.home_rounded,
-        // Gradient Biru Gelap ke Biru Tengah
-        gradient: LinearGradient(
-          colors: [primaryDark, primaryMid],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      // Tab 0: Beranda (Menggunakan HomepageHomeScreen dari import)
+      const HomepageHomeScreen(),
+      
+      // Tab 1: Gear Guide
       const GearGuidePage(),
-      const PlaceholderPage(
-        title: 'Galeri Video',
-        icon: Icons.video_library_rounded,
-        // Gradient Biru Tengah ke Merah (Transisi)
-        gradient: LinearGradient(
-          colors: [primaryMid, primaryRed],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      
+      // Tab 2: Video Gallery (Menggunakan VideoGalleryPage dari import)
+      const VideoGalleryPage(),
+      
+      // Tab 3: Forum (Masih Placeholder)
       const PlaceholderPage(
         title: 'Forum',
         icon: Icons.forum_rounded,
@@ -168,6 +173,8 @@ class _HomePageState extends State<HomePage> {
           end: Alignment.bottomRight,
         ),
       ),
+      
+      // Tab 4: Profil
       const ProfileScreen(),
     ];
 
@@ -178,6 +185,7 @@ class _HomePageState extends State<HomePage> {
     return basePages;
   }
 
+  // Data Icon & Label untuk Bottom Navigation
   List<_NavItemData> get _navItems {
     final baseItems = <_NavItemData>[
       _NavItemData(
@@ -225,10 +233,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Pages
+          // Menampilkan Halaman sesuai index yang dipilih
           _pages[_selectedIndex],
           
-          // Modern Bottom Nav
+          // Modern Bottom Nav (Floating di bawah)
           Positioned(
             left: 20,
             right: 20,
@@ -244,7 +252,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       height: 72,
       decoration: BoxDecoration(
-        color: primaryDark, // Background Nav Bar jadi Biru Gelap biar elegan
+        color: primaryDark, // Background Nav Bar Biru Gelap
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -299,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Icon(
                   isSelected ? item.selectedIcon : item.icon,
-                  // Icon putih di atas background biru gelap/merah
+                  // Icon putih
                   color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
                   size: 24,
                 ),
@@ -311,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white, // Text putih
+                    color: Colors.white,
                   ),
                 ),
               ]
@@ -336,7 +344,7 @@ class _NavItemData {
 }
 
 // ============================================================
-// PLACEHOLDER PAGE - Updated Colors
+// PLACEHOLDER PAGE - Digunakan jika halaman belum siap
 // ============================================================
 class PlaceholderPage extends StatelessWidget {
   final String title;
@@ -353,7 +361,7 @@ class PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Background abu sangat muda
+      backgroundColor: const Color(0xFFF5F7FA),
       body: Column(
         children: [
           // Custom Header Container
@@ -412,7 +420,7 @@ class PlaceholderPage extends StatelessWidget {
                       child: Icon(
                         icon,
                         size: 64,
-                        color: Colors.white, // Warna akan ditimpa ShaderMask
+                        color: Colors.white,
                       ),
                     ),
                   ),

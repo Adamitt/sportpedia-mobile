@@ -21,14 +21,20 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
   List<Datum> _gears = [];
   List<Datum> _filteredGears = [];
 
-  String? _selectedSport;
-  String? _selectedLevel;
+  // UBAH KE SET UNTUK MULTI-SELECT
+  Set<String> _selectedSports = {}; 
+  Set<String> _selectedLevels = {};
   String _searchQuery = '';
 
   List<String> _availableSports = [];
   
   late AnimationController _fabController;
   late Animation<double> _fabAnimation;
+
+  // Warna Utama (Konsisten dengan main.dart)
+  static const Color primaryDark = Color(0xFF1C3264);
+  static const Color primaryMid = Color(0xFF2A4B97);
+  static const Color primaryBlue = Color(0xFF3B82F6);
 
   @override
   void initState() {
@@ -78,18 +84,23 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
 
   void _applyFilters() {
     _filteredGears = _gears.where((gear) {
-      final matchSport = _selectedSport == null ||
-          gear.sportName.toLowerCase() == _selectedSport!.toLowerCase();
-      final matchLevel =
-          _selectedLevel == null || gear.levelDisplay == _selectedLevel;
+      // LOGIC BARU: Cek apakah set kosong ATAU item ada di dalam set
+      final matchSport = _selectedSports.isEmpty ||
+          _selectedSports.contains(gear.sportName);
+      
+      final matchLevel = _selectedLevels.isEmpty || 
+          _selectedLevels.contains(gear.levelDisplay);
+          
       final matchSearch = _searchQuery.isEmpty ||
           gear.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           gear.sportName.toLowerCase().contains(_searchQuery.toLowerCase());
+          
       return matchSport && matchLevel && matchSearch;
     }).toList();
   }
 
   Future<void> _confirmDelete(Datum gear) async {
+    // ... (Kode delete sama seperti sebelumnya)
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -143,6 +154,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
   }
 
   Future<void> _deleteGear(Datum gear) async {
+    // ... (Kode delete logic sama)
     final result = await GearGuideService.deleteGear(
       context,
       gear.id.toString(),
@@ -212,7 +224,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                          colors: [primaryBlue, Color(0xFF8B5CF6)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -231,8 +243,9 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                     TextButton(
                       onPressed: () {
                         setModalState(() {
-                          _selectedSport = null;
-                          _selectedLevel = null;
+                          // Clear semua selection
+                          _selectedSports.clear();
+                          _selectedLevels.clear();
                         });
                         setState(() {
                           _applyFilters();
@@ -264,25 +277,33 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Sport Type Section
+                      // Sport Type Section (MULTI SELECT)
                       _buildFilterSection(
                         'Sport Type',
                         Icons.sports_soccer,
                         [
+                          // Tombol All Sports
                           _buildChip(
                             'All Sports',
-                            _selectedSport == null,
+                            _selectedSports.isEmpty,
                             () {
-                              setModalState(() => _selectedSport = null);
+                              setModalState(() => _selectedSports.clear());
                               setState(() => _applyFilters());
                             },
                           ),
+                          // List Sports
                           ..._availableSports.map(
                             (sport) => _buildChip(
                               sport,
-                              _selectedSport == sport,
+                              _selectedSports.contains(sport),
                               () {
-                                setModalState(() => _selectedSport = sport);
+                                setModalState(() {
+                                  if (_selectedSports.contains(sport)) {
+                                    _selectedSports.remove(sport);
+                                  } else {
+                                    _selectedSports.add(sport);
+                                  }
+                                });
                                 setState(() => _applyFilters());
                               },
                             ),
@@ -292,42 +313,34 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
 
                       const SizedBox(height: 28),
 
-                      // Skill Level Section
+                      // Skill Level Section (MULTI SELECT)
                       _buildFilterSection(
                         'Skill Level',
                         Icons.bar_chart_rounded,
                         [
                           _buildChip(
                             'All Levels',
-                            _selectedLevel == null,
+                            _selectedLevels.isEmpty,
                             () {
-                              setModalState(() => _selectedLevel = null);
+                              setModalState(() => _selectedLevels.clear());
                               setState(() => _applyFilters());
                             },
                           ),
-                          _buildChip(
-                            'Pemula',
-                            _selectedLevel == 'Pemula',
-                            () {
-                              setModalState(() => _selectedLevel = 'Pemula');
-                              setState(() => _applyFilters());
-                            },
-                          ),
-                          _buildChip(
-                            'Menengah',
-                            _selectedLevel == 'Menengah',
-                            () {
-                              setModalState(() => _selectedLevel = 'Menengah');
-                              setState(() => _applyFilters());
-                            },
-                          ),
-                          _buildChip(
-                            'Profesional',
-                            _selectedLevel == 'Profesional',
-                            () {
-                              setModalState(() => _selectedLevel = 'Profesional');
-                              setState(() => _applyFilters());
-                            },
+                          ...['Pemula', 'Menengah', 'Profesional'].map(
+                            (level) => _buildChip(
+                              level,
+                              _selectedLevels.contains(level),
+                              () {
+                                setModalState(() {
+                                  if (_selectedLevels.contains(level)) {
+                                    _selectedLevels.remove(level);
+                                  } else {
+                                    _selectedLevels.add(level);
+                                  }
+                                });
+                                setState(() => _applyFilters());
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -357,7 +370,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
+                        backgroundColor: primaryBlue,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -420,7 +433,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
         decoration: BoxDecoration(
           gradient: selected
               ? const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                  colors: [primaryBlue, Color(0xFF8B5CF6)],
                 )
               : null,
           color: selected ? null : const Color(0xFFF1F5F9),
@@ -428,7 +441,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withOpacity(0.3),
+                    color: primaryBlue.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -454,7 +467,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+              valueColor: AlwaysStoppedAnimation<Color>(primaryBlue),
               strokeWidth: 3,
             ),
             const SizedBox(height: 16),
@@ -522,7 +535,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -539,17 +552,17 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
 
     return Column(
       children: [
-        // Modern App Bar dengan Gradient
+        // Modern App Bar dengan Gradient (Warna disesuaikan agar tidak conflict)
         Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1C3264), Color(0xFF2A4B97), Color(0xFF3B82F6)],
+              colors: [primaryDark, primaryMid, primaryBlue],
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                color: primaryBlue.withOpacity(0.3),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -673,7 +686,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
           ),
         ),
 
-        // Filter Chips Row
+        // Filter Chips Row (Quick Access - Multi Select Support)
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
@@ -683,30 +696,36 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
+                      // Chip ALL
                       _buildQuickFilterChip(
                         'All',
-                        _selectedSport == null && _selectedLevel == null,
+                        _selectedSports.isEmpty && _selectedLevels.isEmpty,
                         Icons.grid_view_rounded,
                         () {
                           setState(() {
-                            _selectedSport = null;
-                            _selectedLevel = null;
+                            _selectedSports.clear();
+                            _selectedLevels.clear();
                             _applyFilters();
                           });
                         },
                       ),
                       const SizedBox(width: 8),
+                      // Top 3 Sports
                       if (_availableSports.isNotEmpty)
                         ..._availableSports.take(3).map(
                               (sport) => Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: _buildQuickFilterChip(
                                   sport,
-                                  _selectedSport == sport,
+                                  _selectedSports.contains(sport),
                                   Icons.sports_outlined,
                                   () {
                                     setState(() {
-                                      _selectedSport = _selectedSport == sport ? null : sport;
+                                      if (_selectedSports.contains(sport)) {
+                                        _selectedSports.remove(sport);
+                                      } else {
+                                        _selectedSports.add(sport);
+                                      }
                                       _applyFilters();
                                     });
                                   },
@@ -718,18 +737,19 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                 ),
               ),
               const SizedBox(width: 8),
+              // Tombol Filter Sheet
               GestureDetector(
                 onTap: _showFilterSheet,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                      colors: [primaryBlue, Color(0xFF8B5CF6)],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
+                        color: primaryBlue.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -739,7 +759,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
-                      if (_selectedSport != null || _selectedLevel != null) ...[
+                      if (_selectedSports.isNotEmpty || _selectedLevels.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -748,11 +768,11 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '${(_selectedSport != null ? 1 : 0) + (_selectedLevel != null ? 1 : 0)}',
+                            '${_selectedSports.length + _selectedLevels.length}',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF3B82F6),
+                              color: primaryBlue,
                             ),
                           ),
                         ),
@@ -845,8 +865,8 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                         ElevatedButton.icon(
                           onPressed: () {
                             setState(() {
-                              _selectedSport = null;
-                              _selectedLevel = null;
+                              _selectedSports.clear();
+                              _selectedLevels.clear();
                               _searchQuery = '';
                               _applyFilters();
                             });
@@ -857,7 +877,7 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
                             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3B82F6),
+                            backgroundColor: primaryBlue,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -916,10 +936,10 @@ class _GearGuidePageState extends State<GearGuidePage> with TickerProviderStateM
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF3B82F6) : const Color(0xFFF1F5F9),
+          color: selected ? primaryBlue : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? const Color(0xFF3B82F6) : Colors.transparent,
+            color: selected ? primaryBlue : Colors.transparent,
             width: 1.5,
           ),
         ),

@@ -12,9 +12,9 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
+  
   # HTTP requests untuk pemanggilan async ke web service
-  http: ^1.2.0
+  http: ^1.2.2
 
   # State management
   provider: ^6.1.1

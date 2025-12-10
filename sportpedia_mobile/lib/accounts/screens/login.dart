@@ -4,6 +4,9 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'register.dart';
 
+// Conditional import for web
+import 'dart:html' as html if (dart.library.html) 'dart:html';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
