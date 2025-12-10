@@ -27,6 +27,7 @@ class AppColors {
   // Text Colors
   static const Color textDark = Color(0xFF111827);
   static const Color textGray = Color(0xFF6B7280);
+  static const Color textGrey = Color(0xFF6B7280); // Alias for textGray
   static const Color textLight = Color(0xFF9CA3AF);
 
   // Gradient Colors

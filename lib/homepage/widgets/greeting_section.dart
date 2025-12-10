@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 class GreetingSection extends StatelessWidget {
-  const GreetingSection({super.key});
+  final String? username;
+  const GreetingSection({super.key, this.username});
 
   @override
   Widget build(BuildContext context) {
