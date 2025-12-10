@@ -11,7 +11,7 @@ import 'admin_sportpedia/screens/admin_dashboard_screen.dart';
 import 'admin_sportpedia/screens/manage_admin_screen.dart';
 import 'screens/gearguide_page.dart';
 import 'homepage/screens/home_screen.dart';
-import 'homepage/screens/search_results_page.dart'; 
+import 'homepage/screens/search_results_page.dart'; // chevinka: route search results
 import 'modules/video_gallery/screens/video_gallery_page.dart';
 
 void main() {

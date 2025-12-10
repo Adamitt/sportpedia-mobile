@@ -2,6 +2,7 @@
 // Mengimplementasikan pemanggilan asinkronus ke web service Django
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/user_profile.dart';
 import '../models/activity_history.dart';
@@ -18,11 +19,19 @@ class ProfileService {
   // Untuk production:
   //   - https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id
   // ============================================================
-
-  // Untuk Chrome/Web: http://localhost:8000
-  // Untuk Android Emulator: http://10.0.2.2:8000
-  // Untuk Production: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id
   static const String baseUrl = 'http://localhost:8000';
+  
+  // chevinka: Tambahan getter untuk otomatis detect platform (Android emulator support)
+  // Getter ini akan digunakan oleh semua method, tapi const baseUrl tetap ada di atas (tidak dihapus)
+  // Semua penggunaan '$baseUrl' akan otomatis memakai getter ini karena getter shadow const dalam penggunaan
+  static String get baseUrlGetter {
+    if (kIsWeb) {
+      return baseUrl; // Web tetap pakai localhost dari const
+    } else {
+      // Android emulator pakai 10.0.2.2, iOS/local tetap pakai baseUrl const
+      return baseUrl.replaceFirst('localhost', '10.0.2.2');
+    }
+  }
 
   // ============================================================
   // PROFIL USER - READ
@@ -31,7 +40,8 @@ class ProfileService {
   /// Mengambil profil user yang sedang login
   static Future<UserProfile?> getProfile(CookieRequest request) async {
     try {
-      final response = await request.get('$baseUrl/profile/api/profile/');
+      // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+      final response = await request.get('${baseUrlGetter}/profile/api/profile/');
 
       if (response != null && response['status'] == true) {
         return UserProfile.fromJson(response['data']);
@@ -54,7 +64,8 @@ class ProfileService {
   ) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/profile/update/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/profile/update/',
         jsonEncode(profileData),
       );
 
@@ -78,7 +89,8 @@ class ProfileService {
     int? limit,
   }) async {
     try {
-      final response = await request.get('$baseUrl/profile/api/activity/');
+      // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+      final response = await request.get('${baseUrlGetter}/profile/api/activity/');
 
       if (response != null &&
           response['status'] == true &&
@@ -109,7 +121,8 @@ class ProfileService {
   }) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/activity/log/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/activity/log/',
         jsonEncode({'action_type': actionType, 'description': description}),
       );
 
@@ -126,7 +139,8 @@ class ProfileService {
   ) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/activity/clear/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/activity/clear/',
         jsonEncode({}),
       );
 
@@ -153,7 +167,8 @@ class ProfileService {
   }) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/change-password/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/change-password/',
         jsonEncode({
           'old_password': oldPassword,
           'new_password': newPassword,
@@ -179,7 +194,8 @@ class ProfileService {
   }) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/change-email/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/change-email/',
         jsonEncode({'email': newEmail, 'password': password}),
       );
 
@@ -200,7 +216,8 @@ class ProfileService {
   }) async {
     try {
       final response = await request.postJson(
-        '$baseUrl/profile/api/delete-account/',
+        // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+        '${baseUrlGetter}/profile/api/delete-account/',
         jsonEncode({'password': password}),
       );
 
@@ -223,7 +240,8 @@ class ProfileService {
     CookieRequest request,
   ) async {
     try {
-      final response = await request.get('$baseUrl/profile/api/stats/');
+      // chevinka: Menggunakan baseUrlGetter untuk support Android emulator
+      final response = await request.get('${baseUrlGetter}/profile/api/stats/');
 
       if (response != null && response['status'] == true) {
         final data = response['data'];

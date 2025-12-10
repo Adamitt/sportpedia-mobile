@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../theme/app_colors.dart';
+import '../services/api_service.dart';
 import '../../profile_app/screens/profile_screen.dart';
 
 // Conditional import for web
@@ -22,6 +23,36 @@ class _HomeNavBarState extends State<HomeNavBar> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) return;
+    
+    try {
+      final results = await HomepageApiService.search(query: query);
+      
+      // TODO: Navigate to search results page atau show results
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Found ${results['gear_results']?.length ?? 0} gears and ${results['sport_results']?.length ?? 0} sports',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        // TODO: Navigate to search results page dengan data results
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error searching: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -157,13 +188,15 @@ class _HomeNavBarState extends State<HomeNavBar> {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                               ),
                               onSubmitted: (query) {
-                                // Navigate ke search results page (mirip Django, tidak langsung ke modul)
+                                // Navigate to gearguide dengan search query
                                 if (query.trim().isNotEmpty) {
                                   Navigator.pushNamed(
                                     context,
-                                    '/search',
-                                    arguments: query.trim(),
+                                    '/gearguide',
+                                    arguments: {'searchQuery': query},
                                   );
+                                } else {
+                                  _performSearch(query);
                                 }
                               },
                             ),

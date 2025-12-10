@@ -5,7 +5,8 @@ import '../models/popular_category.dart';
 import '../../config/api_config.dart';
 
 class HomepageApiService {
-  static const String baseUrl = ApiConfig.baseUrl;
+  // chevinka: Diubah dari const menjadi getter karena ApiConfig.baseUrl sekarang adalah getter
+  static String get baseUrl => ApiConfig.baseUrl;
 
   // ============================================
   // TESTIMONIALS API
