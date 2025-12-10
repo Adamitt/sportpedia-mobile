@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 
@@ -34,7 +36,6 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
   
   // Color scheme - Professional & Modern
   static const Color primaryBlue = Color(0xFF1C3264);
-  static const Color primaryBlueDark = Color(0xFF0F1F3D);
   static const Color accentYellow = Color(0xFFFFDD78);
   static const Color bgGray = Color(0xFFF5F7FA);
   static const Color cardWhite = Color(0xFFFFFFFF);
@@ -111,8 +112,13 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
     }
     
     try {
+      // Base URL khusus untuk modul video gallery
+      final baseUrl = kIsWeb 
+          ? 'http://localhost:8000' 
+          : (Platform.isAndroid ? 'http://10.0.2.2:8000' : 'http://localhost:8000');
+      
       // Use CookieRequest to get user info (handles cookies automatically)
-      final response = await request.get('http://localhost:8000/accounts/api/user-info/');
+      final response = await request.get('$baseUrl/accounts/api/user-info/');
       
       if (response is Map<String, dynamic>) {
         if (response['authenticated'] == true) {
@@ -186,331 +192,422 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
           CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // Hero Section - Match Django Design
+          // Hero Section - Match Django Design (Responsive)
           SliverToBoxAdapter(
-            child: Container(
-              height: 400,
-              decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0A1628),
-              Color(0xFF0F1F3D),
-              Color(0xFF1C3264),
-              Color(0xFF2D4A7C),
-              Color(0xFF3D5A94),
-              Color(0xFF4A6BA8),
-              Color(0xFF5B7CBC),
-            ],
-          ),
-                image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1400&q=80',
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 768;
+                return Container(
+                  height: isMobile ? 280 : 400,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF0A1628),
+                        Color(0xFF0F1F3D),
+                        Color(0xFF1C3264),
+                        Color(0xFF2D4A7C),
+                        Color(0xFF3D5A94),
+                        Color(0xFF4A6BA8),
+                        Color(0xFF5B7CBC),
+                      ],
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1400&q=80',
+                      ),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.4),
+                        BlendMode.darken,
+                      ),
+                    ),
                   ),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.4),
-                    BlendMode.darken,
-                  ),
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-                      // Play Icon - Above title (Match Django) - Single Circle Only
-          Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: CustomPaint(
-                            size: const Size(30, 30),
-                            painter: _PlayIconPainter(primaryBlue),
-                          ),
-                        ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 16.0 : 24.0,
+                        vertical: isMobile ? 24 : 40,
                       ),
-                      const SizedBox(height: 20),
-                      // Title - VIDEO GALLERY
-                      const Text(
-                        'VIDEO GALLERY',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 1.5,
-                          fontFamily: 'Roboto',
-                          height: 1.2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      // Subtitle - Match Django
-                      const Text(
-                        'Explore our collection of beginner-friendly sports tutorials',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.5,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'Roboto',
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      // GET STARTED Button with Blue Gradient
-                      InkWell(
-                        onTap: () {
-                          _scrollController.animateTo(
-                            400,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF1C3264),
-                                Color(0xFF2D4A7C),
-                                Color(0xFF3D5A94),
-                                Color(0xFF4A6BA8),
-                                Color(0xFF5B7CBC),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Play Icon - Above title (Match Django) - Single Circle Only
+                          Container(
+                            width: isMobile ? 60 : 80,
+                            height: isMobile ? 60 : 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                            child: Center(
+                              child: CustomPaint(
+                                size: Size(isMobile ? 24 : 30, isMobile ? 24 : 30),
+                                painter: _PlayIconPainter(primaryBlue),
                               ),
-                            ],
+                            ),
                           ),
-                          child: const Text(
-                            'GET STARTED',
+                          SizedBox(height: isMobile ? 12 : 20),
+                          // Title - VIDEO GALLERY
+                          Text(
+                            'VIDEO GALLERY',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontSize: isMobile ? 24 : 36,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
-                              letterSpacing: 1.2,
+                              letterSpacing: isMobile ? 1.0 : 1.5,
+                              fontFamily: 'Roboto',
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: isMobile ? 8 : 16),
+                          // Subtitle - Match Django
+                          Text(
+                            'Explore our collection of beginner-friendly sports tutorials',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: isMobile ? 13 : 16,
+                              color: Colors.white,
+                              height: 1.5,
+                              fontWeight: FontWeight.w400,
                               fontFamily: 'Roboto',
                             ),
                           ),
-                        ),
+                          SizedBox(height: isMobile ? 20 : 32),
+                          // GET STARTED Button with Blue Gradient
+                          InkWell(
+                            onTap: () {
+                              _scrollController.animateTo(
+                                isMobile ? 280 : 400,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isMobile ? 24 : 32,
+                                vertical: isMobile ? 12 : 16,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF1C3264),
+                                    Color(0xFF2D4A7C),
+                                    Color(0xFF3D5A94),
+                                    Color(0xFF4A6BA8),
+                                    Color(0xFF5B7CBC),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'GET STARTED',
+                                style: TextStyle(
+                                  fontSize: isMobile ? 14 : 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: isMobile ? 1.0 : 1.2,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          
+          // Search & Filter Section - Match Django Design (Responsive)
+          SliverToBoxAdapter(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 768;
+                return Container(
+                  color: bgGray,
+                  padding: EdgeInsets.fromLTRB(
+                    isMobile ? 16 : 20,
+                    isMobile ? 20 : 32,
+                    isMobile ? 16 : 20,
+                    isMobile ? 16 : 24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search Bar - Centered, Match Django
+                      StatefulBuilder(
+                        builder: (context, setStateLocal) {
+                          return Container(
+                            margin: EdgeInsets.only(bottom: isMobile ? 16 : 24),
+                            decoration: BoxDecoration(
+                              color: cardWhite,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: borderColor, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (value) {
+                                setStateLocal(() {});
+                                _onSearchChanged(value);
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Search for videos, sports, or instructors...',
+                                hintStyle: TextStyle(
+                                  color: textSecondary.withOpacity(0.7),
+                                  fontSize: isMobile ? 14 : 15,
+                                  fontFamily: 'Roboto',
+                                ),
+                                prefixIcon: Icon(Icons.search, color: textSecondary, size: isMobile ? 20 : 22),
+                                suffixIcon: _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: Icon(Icons.clear, color: textSecondary, size: isMobile ? 18 : 20),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setStateLocal(() {});
+                                          _loadVideos();
+                                        },
+                                      )
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: cardWhite,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 16 : 20,
+                                  vertical: isMobile ? 12 : 16,
+                                ),
+                              ),
+                              style: TextStyle(
+                                fontSize: isMobile ? 14 : 15,
+                                fontFamily: 'Roboto',
+                                color: textPrimary,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      // Filter Section - Responsive: Mobile shows filter button, Desktop shows all dropdowns
+                      FutureBuilder<List<Video>>(
+                        future: _videosFuture,
+                        builder: (context, snapshot) {
+                          final videoCount = snapshot.hasData ? snapshot.data!.length : 0;
+                          if (isMobile) {
+                            // Mobile: Show filter button + count
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _showMobileFilterSheet(),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: cardWhite,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: borderColor, width: 1),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.03),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.tune, color: primaryBlue, size: 20),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Filters',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: textPrimary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            '$videoCount videos',
+                                            style: TextStyle(
+                                              fontFamily: 'Roboto',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            // Desktop: Show all dropdowns + apply button + count
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    // All Sports Dropdown
+                                    Expanded(
+                                      child: _buildDropdownFilter(
+                                        label: (_tempSportId ?? _selectedSportId) == null 
+                                            ? 'All Sports' 
+                                            : _sports.firstWhere((s) => s['id'] == (_tempSportId ?? _selectedSportId))['name'] as String,
+                                        onTap: () => _showSportFilter(),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Difficulty Level Dropdown
+                                    Expanded(
+                                      child: _buildDropdownFilter(
+                                        label: (_tempDifficulty ?? _selectedDifficulty) == null 
+                                            ? 'Difficulty Level' 
+                                            : _difficulties.firstWhere((d) => d['value'] == (_tempDifficulty ?? _selectedDifficulty))['label'] as String,
+                                        onTap: () => _showDifficultyFilter(),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Most Popular Dropdown
+                                    Expanded(
+                                      child: _buildDropdownFilter(
+                                        label: _sortBy == 'popular' ? 'Most Popular' :
+                                               _sortBy == 'newest' ? 'Newest First' :
+                                               _sortBy == 'rating' ? 'Highest Rating' :
+                                               'Most Views',
+                                        onTap: () => _showSortOptions(),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Apply Filters Button with Blue Gradient
+                                    InkWell(
+                                      onTap: _applyFilter,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFF1C3264),
+                                              Color(0xFF2D4A7C),
+                                              Color(0xFF3D5A94),
+                                              Color(0xFF4A6BA8),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: primaryBlue.withOpacity(0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Text(
+                                          'Apply Filters',
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    // Video Count - Match Django
+                                    Text(
+                                      '$videoCount videos',
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           
-          // Search & Filter Section - Match Django Design
-          SliverToBoxAdapter(
-            child: Container(
-              color: bgGray,
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Search Bar - Centered, Match Django
-                  StatefulBuilder(
-                    builder: (context, setStateLocal) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: cardWhite,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: borderColor, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: (value) {
-                            setStateLocal(() {});
-                            _onSearchChanged(value);
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Search for videos, sports, or instructors...',
-                            hintStyle: TextStyle(
-                              color: textSecondary.withOpacity(0.7),
-                              fontSize: 15,
-                              fontFamily: 'Roboto',
-                            ),
-                            prefixIcon: Icon(Icons.search, color: textSecondary, size: 22),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(Icons.clear, color: textSecondary, size: 20),
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      setStateLocal(() {});
-                                      _loadVideos();
-                                    },
-                                  )
-                                : null,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: cardWhite,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontFamily: 'Roboto',
-                            color: textPrimary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  
-                  // Filter Section - Match Django: Dropdowns + Apply Button + Count
-                  FutureBuilder<List<Video>>(
-                    future: _videosFuture,
-                    builder: (context, snapshot) {
-                      final videoCount = snapshot.hasData ? snapshot.data!.length : 0;
-                      return Column(
-              children: [
-                Row(
-                  children: [
-                              // All Sports Dropdown
-                    Expanded(
-                                child: _buildDropdownFilter(
-                                  label: (_tempSportId ?? _selectedSportId) == null 
-                                      ? 'All Sports' 
-                                      : _sports.firstWhere((s) => s['id'] == (_tempSportId ?? _selectedSportId))['name'] as String,
-                                  onTap: () => _showSportFilter(),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              // Difficulty Level Dropdown
-                              Expanded(
-                                child: _buildDropdownFilter(
-                                  label: (_tempDifficulty ?? _selectedDifficulty) == null 
-                                      ? 'Difficulty Level' 
-                                      : _difficulties.firstWhere((d) => d['value'] == (_tempDifficulty ?? _selectedDifficulty))['label'] as String,
-                                  onTap: () => _showDifficultyFilter(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                              // Most Popular Dropdown
-                    Expanded(
-                                child: _buildDropdownFilter(
-                                  label: _sortBy == 'popular' ? 'Most Popular' :
-                                         _sortBy == 'newest' ? 'Newest First' :
-                                         _sortBy == 'rating' ? 'Highest Rating' :
-                                         'Most Views',
-                                  onTap: () => _showSortOptions(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                              // Apply Filters Button with Blue Gradient
-                              InkWell(
-                                onTap: _applyFilter,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFF1C3264),
-                                        Color(0xFF2D4A7C),
-                                        Color(0xFF3D5A94),
-                                        Color(0xFF4A6BA8),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: primaryBlue.withOpacity(0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Text(
-                                    'Apply Filters',
-                                    style: TextStyle(
-                                      fontFamily: 'Roboto',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              // Video Count - Match Django
-                              Text(
-                                '$videoCount videos',
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Video Grid - Professional Layout
+          // Video Grid - Professional Layout (Responsive)
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            padding: EdgeInsets.fromLTRB(
+              MediaQuery.of(context).size.width < 768 ? 16 : 20,
+              8,
+              MediaQuery.of(context).size.width < 768 ? 16 : 20,
+              24,
+            ),
             sliver: FutureBuilder<List<Video>>(
-              future: _videosFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 20,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildSkeletonCard(),
-                      childCount: 6,
-                    ),
-                  );
-                }
+                  future: _videosFuture,
+                  builder: (context, snapshot) {
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final isMobile = screenWidth < 768;
+                    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+                    final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 3);
+                    final childAspectRatio = isMobile ? 1.1 : (isTablet ? 0.85 : 0.75);
+                    final spacing = isMobile ? 12.0 : 16.0;
+                    
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: childAspectRatio,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => _buildSkeletonCard(),
+                          childCount: isMobile ? 3 : 6,
+                        ),
+                      );
+                    }
 
                 if (snapshot.hasError) {
                   return SliverFillRemaining(
@@ -587,24 +684,24 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                   );
                 }
 
-                // Grid: 3 columns per baris
-                return SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.75, // Proporsi untuk 3 kolom
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 20,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                    final video = videos[index];
-                      return _buildVideoCard(video);
-                    },
-                    childCount: videos.length,
-                  ),
-                );
-              },
-            ),
+                    // Grid: Responsive columns
+                    return SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: childAspectRatio,
+                        crossAxisSpacing: spacing,
+                        mainAxisSpacing: spacing,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final video = videos[index];
+                          return _buildVideoCard(video);
+                        },
+                        childCount: videos.length,
+                      ),
+                    );
+                  },
+                ),
           ),
           
           const SliverToBoxAdapter(
@@ -622,7 +719,7 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                 if (request.loggedIn && _isAdmin == true) {
                   return FloatingActionButton.small(
                     onPressed: () async {
-                      final result = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const AdminVideoListPage(),
@@ -879,6 +976,314 @@ class _VideoGalleryPageState extends State<VideoGalleryPage> {
                     _loadVideos(); // Reload videos with new sort
                   },
                 )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Mobile filter sheet - shows all filters in one bottom sheet
+  void _showMobileFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: cardWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Filters',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _tempSportId = null;
+                            _tempDifficulty = null;
+                            _sortBy = 'popular';
+                          });
+                        },
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: primaryBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sport Filter
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Sport',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: cardWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor, width: 1),
+                      ),
+                      child: Column(
+                        children: _sports.map((sport) {
+                          final isSelected = (_tempSportId ?? _selectedSportId) == sport['id'];
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _tempSportId = sport['id'] as int?;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isSelected ? primaryBlue.withOpacity(0.1) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      sport['name'] as String,
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 15,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isSelected ? primaryBlue : textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(Icons.check, color: primaryBlue, size: 20),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    
+                    // Difficulty Filter
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Difficulty Level',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: cardWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor, width: 1),
+                      ),
+                      child: Column(
+                        children: _difficulties.map((diff) {
+                          final isSelected = (_tempDifficulty ?? _selectedDifficulty) == diff['value'];
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _tempDifficulty = diff['value'];
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isSelected ? primaryBlue.withOpacity(0.1) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      diff['label'] ?? 'Semua Level',
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 15,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isSelected ? primaryBlue : textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(Icons.check, color: primaryBlue, size: 20),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    
+                    // Sort Options
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Sort By',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: cardWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          {'value': 'popular', 'label': 'Most Popular'},
+                          {'value': 'newest', 'label': 'Newest First'},
+                          {'value': 'rating', 'label': 'Highest Rating'},
+                          {'value': 'views', 'label': 'Most Views'},
+                        ].map((sort) {
+                          final isSelected = _sortBy == sort['value'];
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _sortBy = sort['value'] as String;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isSelected ? primaryBlue.withOpacity(0.1) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      sort['label'] as String,
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 15,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isSelected ? primaryBlue : textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(Icons.check, color: primaryBlue, size: 20),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    
+                    // Apply Button
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: InkWell(
+                          onTap: () {
+                            _applyFilter();
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF1C3264),
+                                  Color(0xFF2D4A7C),
+                                  Color(0xFF3D5A94),
+                                  Color(0xFF4A6BA8),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: primaryBlue.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Apply Filters',
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

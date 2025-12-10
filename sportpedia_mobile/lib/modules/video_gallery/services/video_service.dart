@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:http/http.dart' as http;
@@ -8,19 +9,23 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/video.dart';
 import '../models/comment.dart';
 
-// Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
+// Note: Using CookieRequest for all platforms (web and mobile)
+// CookieRequest handles cookies automatically for both platforms
 
 /// Service untuk memanggil API katalog video (list & detail).
 class VideoService {
-  /// Base URL server Django kamu
-  /// Untuk Flutter Web, gunakan localhost agar cookie bisa terkirim (same-origin)
-  /// Untuk Android Emulator, gunakan 10.0.2.2:8000
+  /// Base URL server Django - khusus untuk modul video gallery
+  /// - Web: http://localhost:8000
+  /// - Android Emulator: http://10.0.2.2:8000
+  /// - iOS Simulator: http://localhost:8000
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8000';  // Use localhost for web to match Flutter Web origin
+      return 'http://localhost:8000';
+    } else if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000';  // Android emulator
+    } else {
+      return 'http://localhost:8000';  // iOS simulator atau platform lain
     }
-    return 'http://127.0.0.1:8000';  // Use 127.0.0.1 for mobile
   }
 
   /// GET /videos/api/ (dengan optional filter)
@@ -183,56 +188,7 @@ class VideoService {
       print('[DEBUG] VideoService.submitComment - URL: $url');
       print('[DEBUG] VideoService.submitComment - loggedIn: ${request.loggedIn}');
       
-      // For Flutter Web, use XMLHttpRequest directly with withCredentials
-      if (kIsWeb) {
-        print('[DEBUG] VideoService.submitComment - Using XMLHttpRequest for Flutter Web with credentials');
-        
-        try {
-          // Use XMLHttpRequest directly to ensure cookies are sent
-          final xhr = html.HttpRequest();
-          final completer = Completer<Comment>();
-          
-          xhr.open('POST', url.toString(), async: true);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.withCredentials = true; // CRITICAL: This ensures cookies are sent
-          
-          xhr.onLoad.listen((event) {
-            print('[DEBUG] VideoService.submitComment - XHR response status: ${xhr.status}');
-            if (xhr.status == 200 || xhr.status == 201) {
-              try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-                completer.complete(Comment.fromJson(data));
-              } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
-              }
-            } else {
-              try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception('Gagal menambah komentar: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
-              } catch (e) {
-                completer.completeError(Exception('Gagal menambah komentar: HTTP ${xhr.status}'));
-              }
-            }
-          });
-          
-          xhr.onError.listen((event) {
-            completer.completeError(Exception('Network error saat mengirim komentar'));
-          });
-          
-          final requestBody = jsonEncode({
-            'text': text,
-            if (rating != null) 'rating': rating,
-          });
-          
-          print('[DEBUG] VideoService.submitComment - Sending XHR request with withCredentials=true');
-          xhr.send(requestBody);
-          
-          return await completer.future;
-        } catch (e) {
-          print('[DEBUG] VideoService.submitComment - XHR call failed: $e');
-          // Fall through to CookieRequest.post() as fallback
-        }
-      }
+      // Use CookieRequest for all platforms (works for both web and mobile)
       
     final response = await request.post(
       url.toString(),
@@ -319,48 +275,7 @@ class VideoService {
     final url = Uri.parse('$baseUrl/videos/comment/$commentId/helpful/');
     
     try {
-      // For Flutter Web, use XMLHttpRequest directly with withCredentials
-      if (kIsWeb) {
-        try {
-          final xhr = html.HttpRequest();
-          final completer = Completer<int>();
-          
-          xhr.open('POST', url.toString(), async: true);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.withCredentials = true;
-          
-          xhr.onLoad.listen((event) {
-            if (xhr.status == 200 || xhr.status == 201) {
-              try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-                if (data['success'] == true) {
-                  completer.complete(data['helpful_count'] as int);
-                } else {
-                  completer.completeError(Exception(data['error'] ?? 'Failed to mark as helpful'));
-                }
-              } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
-              }
-            } else {
-              try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
-              } catch (e) {
-                completer.completeError(Exception('HTTP ${xhr.status}'));
-              }
-            }
-          });
-          
-          xhr.onError.listen((event) {
-            completer.completeError(Exception('Network error'));
-          });
-          
-          xhr.send('');
-          return await completer.future;
-        } catch (e) {
-          // Fall through to CookieRequest.post() as fallback
-        }
-      }
+      // Use CookieRequest for all platforms
       
       final response = await request.post(
         url.toString(),
@@ -409,49 +324,7 @@ class VideoService {
     final url = Uri.parse('$baseUrl/videos/api/comment/$commentId/reply/');
     
     try {
-      // For Flutter Web, use XMLHttpRequest directly with withCredentials
-      if (kIsWeb) {
-        try {
-          final xhr = html.HttpRequest();
-          final completer = Completer<Comment>();
-          
-          xhr.open('POST', url.toString(), async: true);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.withCredentials = true;
-          
-          xhr.onLoad.listen((event) {
-            if (xhr.status == 200 || xhr.status == 201) {
-              try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-                if (data.containsKey('error')) {
-                  completer.completeError(Exception(data['error'] as String));
-                } else {
-                  completer.complete(Comment.fromJson(data));
-                }
-              } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
-              }
-            } else {
-              try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
-              } catch (e) {
-                completer.completeError(Exception('HTTP ${xhr.status}'));
-              }
-            }
-          });
-          
-          xhr.onError.listen((event) {
-            completer.completeError(Exception('Network error'));
-          });
-          
-          final requestBody = jsonEncode({'text': text});
-          xhr.send(requestBody);
-          return await completer.future;
-        } catch (e) {
-          // Fall through to CookieRequest.post() as fallback
-        }
-      }
+      // Use CookieRequest for all platforms
       
       final response = await request.post(
         url.toString(),
@@ -537,58 +410,7 @@ class VideoService {
 
     final url = Uri.parse('$baseUrl/videos/api/create/');
     
-    // For Flutter Web, use XMLHttpRequest with credentials
-    if (kIsWeb) {
-      try {
-        final xhr = html.HttpRequest();
-        final completer = Completer<Video>();
-        
-        xhr.open('POST', url.toString(), async: true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.withCredentials = true;
-        
-        xhr.onLoad.listen((event) {
-          if (xhr.status == 201 || xhr.status == 200) {
-            try {
-              final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-              completer.complete(Video.fromJson(data));
-            } catch (e) {
-              completer.completeError(Exception('Gagal memparse response: $e'));
-            }
-          } else {
-            try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              completer.completeError(Exception('Gagal membuat video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
-            } catch (e) {
-              completer.completeError(Exception('Gagal membuat video: HTTP ${xhr.status}'));
-            }
-          }
-        });
-        
-        xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat membuat video'));
-        });
-        
-        final requestBody = jsonEncode({
-          'title': title,
-          'description': description,
-          'sport': sportId,
-          'difficulty': difficulty,
-          'video_url': videoUrl,
-          if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-          if (instructor != null) 'instructor': instructor,
-          if (duration != null) 'duration': duration,
-          if (tags != null) 'tags': tags,
-        });
-        
-        xhr.send(requestBody);
-        return await completer.future;
-      } catch (e) {
-        throw Exception('Gagal membuat video: $e');
-      }
-    }
-    
-    // For mobile, use CookieRequest
+    // Use CookieRequest for all platforms
     final response = await request.post(
       url.toString(),
       jsonEncode({
@@ -638,73 +460,7 @@ class VideoService {
 
     final url = Uri.parse('$baseUrl/videos/api/$videoId/update/');
     
-    // For Flutter Web, use XMLHttpRequest with credentials
-    if (kIsWeb) {
-      try {
-        print('[DEBUG] VideoService.updateVideo - Using XMLHttpRequest for Flutter Web');
-        // Check cookie
-        final cookies = html.document.cookie ?? '';
-        if (cookies.isNotEmpty) {
-          final cookiePreview = cookies.length > 100 ? cookies.substring(0, 100) : cookies;
-          print('[DEBUG] VideoService.updateVideo - Cookies: $cookiePreview...');
-        } else {
-          print('[DEBUG] VideoService.updateVideo - No cookies found');
-        }
-        
-        final xhr = html.HttpRequest();
-        final completer = Completer<Video>();
-        
-        xhr.open('POST', url.toString(), async: true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.withCredentials = true;
-        
-        xhr.onLoad.listen((event) {
-          print('[DEBUG] VideoService.updateVideo - HTTP status: ${xhr.status}');
-          if (xhr.status == 200) {
-            try {
-              final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-              print('[DEBUG] VideoService.updateVideo - Success response: ${data.keys}');
-              completer.complete(Video.fromJson(data));
-            } catch (e) {
-              print('[DEBUG] VideoService.updateVideo - Parse error: $e');
-              completer.completeError(Exception('Gagal memparse response: $e'));
-            }
-          } else {
-            try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              print('[DEBUG] VideoService.updateVideo - Error response: $errorData');
-              completer.completeError(Exception('Gagal mengupdate video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
-            } catch (e) {
-              print('[DEBUG] VideoService.updateVideo - Error parse error: $e');
-              completer.completeError(Exception('Gagal mengupdate video: HTTP ${xhr.status}'));
-            }
-          }
-        });
-        
-        xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat mengupdate video'));
-        });
-        
-        final requestBody = jsonEncode({
-          if (title != null) 'title': title,
-          if (description != null) 'description': description,
-          if (sportId != null) 'sport': sportId,
-          if (difficulty != null) 'difficulty': difficulty,
-          if (videoUrl != null) 'video_url': videoUrl,
-          if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-          if (instructor != null) 'instructor': instructor,
-          if (duration != null) 'duration': duration,
-          if (tags != null) 'tags': tags,
-        });
-        
-        xhr.send(requestBody);
-        return await completer.future;
-      } catch (e) {
-        throw Exception('Gagal mengupdate video: $e');
-      }
-    }
-    
-    // For mobile, use CookieRequest
+    // Use CookieRequest for all platforms
     final response = await request.post(
       url.toString(),
       jsonEncode({
@@ -742,41 +498,7 @@ class VideoService {
 
     final url = Uri.parse('$baseUrl/videos/api/$videoId/delete/');
     
-    // For Flutter Web, use XMLHttpRequest with credentials
-    if (kIsWeb) {
-      try {
-        final xhr = html.HttpRequest();
-        final completer = Completer<void>();
-        
-        xhr.open('POST', url.toString(), async: true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.withCredentials = true;
-        
-        xhr.onLoad.listen((event) {
-          if (xhr.status == 200) {
-            completer.complete();
-          } else {
-            try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              completer.completeError(Exception('Gagal menghapus video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
-            } catch (e) {
-              completer.completeError(Exception('Gagal menghapus video: HTTP ${xhr.status}'));
-            }
-          }
-        });
-        
-        xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat menghapus video'));
-        });
-        
-        xhr.send('{}');
-        return await completer.future;
-      } catch (e) {
-        throw Exception('Gagal menghapus video: $e');
-      }
-    }
-    
-    // For mobile, use CookieRequest
+    // Use CookieRequest for all platforms
     final response = await request.post(
       url.toString(),
       jsonEncode({}),

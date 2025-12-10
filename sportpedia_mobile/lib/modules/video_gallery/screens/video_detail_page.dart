@@ -394,6 +394,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    
     return Scaffold(
       backgroundColor: bgGray,
       appBar: AppBar(
@@ -409,6 +411,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           style: TextStyle(
             color: primaryBlue,
             fontWeight: FontWeight.bold,
+            fontSize: isMobile ? 16 : 18,
             fontFamily: 'Roboto',
           ),
         ),
@@ -484,15 +487,18 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 12 : 16,
+                    vertical: isMobile ? 12 : 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Title - YouTube Style
                       Text(
                         video.title,
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: isMobile ? 18 : 20,
                           fontWeight: FontWeight.w600,
                           color: textPrimary,
                           fontFamily: 'Roboto',
