@@ -43,9 +43,11 @@ class GreetingSection extends StatelessWidget {
                   ).createShader(bounds);
                 },
                 blendMode: BlendMode.srcIn,
-                child: const Text(
-                  'Hello, Are you new here?',
-                  style: TextStyle(
+                child: Text(
+                  username != null && username!.isNotEmpty
+                      ? 'Hello, $username!'
+                      : 'Hello, Are you new here?',
+                  style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

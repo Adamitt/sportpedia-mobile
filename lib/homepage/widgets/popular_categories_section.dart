@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/popular_category.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
+import '../../sport_library/models/sport.dart';
+import '../../sport_library/screens/sport_detail.dart';
+import '../../models/gear_list.dart';
+import '../../screens/gear_detail_page.dart';
+import '../../config/api_config.dart';
 
 class PopularCategoriesSection extends StatefulWidget {
   const PopularCategoriesSection({super.key});
@@ -30,6 +39,8 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
 
     try {
       final items = await HomepageApiService.getPopularCategories(limit: 3);
+      // Pastikan kita dapat 3 items (top 3 berdasarkan views)
+      debugPrint('What\'s Hot: Received ${items.length} items (should be 3)');
       setState(() {
         _items = items;
         _isLoading = false;
@@ -238,9 +249,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {
-              // TODO: Navigate to detail page
-            },
+            onTap: () => _handleItemTap(item),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -430,6 +439,159 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
         ),
       ),
     );
+  }
+
+  /// Parse URL untuk extract ID berdasarkan category
+  String? _extractIdFromUrl(String url, String category) {
+    try {
+      final uri = Uri.parse(url);
+      final pathSegments = uri.pathSegments.where((seg) => seg.isNotEmpty).toList();
+      
+      if (category == 'Library') {
+        // URL format: /sportlibrary/<sport_id>/
+        final sportIndex = pathSegments.indexOf('sportlibrary');
+        if (sportIndex != -1 && sportIndex + 1 < pathSegments.length) {
+          return pathSegments[sportIndex + 1];
+        }
+      } else if (category == 'Gear' || category == 'Gear Guide') {
+        // URL format: /gearguide/details/<gear_id>/ atau /gearguide/<gear_id>/
+        final gearIndex = pathSegments.indexOf('gearguide');
+        if (gearIndex != -1) {
+          // Cek apakah ada 'details' setelah 'gearguide'
+          if (gearIndex + 1 < pathSegments.length) {
+            if (pathSegments[gearIndex + 1] == 'details' && gearIndex + 2 < pathSegments.length) {
+              return pathSegments[gearIndex + 2];
+            } else {
+              return pathSegments[gearIndex + 1];
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error parsing URL: $e');
+    }
+    return null;
+  }
+
+  /// Handle tap pada item What's Hot
+  Future<void> _handleItemTap(PopularCategory item) async {
+    final id = _extractIdFromUrl(item.url, item.category);
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak dapat membuka detail item')),
+      );
+      return;
+    }
+
+    if (item.category == 'Library') {
+      await _navigateToSportDetail(id);
+    } else if (item.category == 'Gear' || item.category == 'Gear Guide') {
+      await _navigateToGearDetail(id);
+    }
+  }
+
+  /// Navigate ke Sport Detail Page
+  Future<void> _navigateToSportDetail(String sportIdStr) async {
+    try {
+      final request = context.read<CookieRequest>();
+      final baseUrl = ApiConfig.baseUrl;
+      
+      // Fetch semua sports dan cari yang sesuai ID
+      final response = await request.get('$baseUrl/sportlibrary/api/show-sports-json/');
+      
+      if (response is List) {
+        // Parse sport_id (bisa int atau string)
+        int? sportId;
+        try {
+          sportId = int.parse(sportIdStr);
+        } catch (e) {
+          // Jika gagal parse sebagai int, coba cari berdasarkan string
+          final sport = response.firstWhere(
+            (s) => s['id'].toString() == sportIdStr,
+            orElse: () => null,
+          );
+          if (sport != null) {
+            sportId = sport['id'] as int?;
+          }
+        }
+
+        if (sportId != null) {
+          final sportData = response.firstWhere(
+            (s) => s['id'] == sportId,
+            orElse: () => null,
+          );
+
+          if (sportData != null) {
+            final sport = Sport.fromJson(sportData as Map<String, dynamic>);
+            if (mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SportDetailPage(sport: sport, isAdmin: false),
+                ),
+              );
+            }
+            return;
+          }
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sport tidak ditemukan')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error navigating to sport detail: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  /// Navigate ke Gear Detail Page
+  Future<void> _navigateToGearDetail(String gearId) async {
+    try {
+      final baseUrl = ApiConfig.baseUrl;
+      
+      // Fetch semua gears
+      final response = await http.get(Uri.parse('$baseUrl/gearguide/json/'));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final gearlist = Gearlist.fromJson(data);
+        
+        // Cari gear berdasarkan ID
+        final gear = gearlist.data.firstWhere(
+          (g) => g.id == gearId || g.id.toString() == gearId,
+          orElse: () => throw Exception('Gear not found'),
+        );
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GearDetailPage(datum: gear),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal memuat data gear')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error navigating to gear detail: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
   }
 }
 

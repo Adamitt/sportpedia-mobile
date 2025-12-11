@@ -180,14 +180,26 @@ class QuickNavigationSection extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            final route = item['route'] as String;
-            if (route == '/gearguide') {
+            final title = item['title'] as String;
+            // Navigate berdasarkan judul feature
+            if (title == 'Sports Library') {
+              Navigator.pushNamed(context, '/sportlibrary');
+            } else if (title == 'Gear Guide') {
               Navigator.pushNamed(context, '/gearguide');
+            } else if (title == 'Video Gallery') {
+              Navigator.pushNamed(context, '/videos');
+            } else if (title == 'Community') {
+              // Community/Forum - bisa diarahkan ke route yang sesuai jika ada
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Community page coming soon'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             } else {
-              // Untuk route lain, show coming soon
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${item['title']} page coming soon'),
+                  content: Text('$title page coming soon'),
                   duration: const Duration(seconds: 2),
                 ),
               );

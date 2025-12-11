@@ -136,10 +136,13 @@ class _HomePageState extends State<HomePage> {
       // Tab 2: Video Gallery (Dari Kode 1 - Menggantikan Placeholder)
       const VideoGalleryPage(),
 
-      // Tab 3: Gear Guide (Dari Kode 1 - Menggantikan Forum Placeholder sementara)
+      // Tab 3: Gear Guide (Dari Kode 1)
       const GearGuidePage(),
       
-      // Tab 4: Profile (Dari Kode 2)
+      // Tab 4: Forum (Modul orang lain - placeholder)
+      _ForumPlaceholderPage(),
+      
+      // Tab 5: Profile (Dari Kode 2)
       const ProfileScreen(), 
     ];
 
@@ -174,6 +177,11 @@ class _HomePageState extends State<HomePage> {
         icon: Icon(Icons.map_outlined),
         selectedIcon: Icon(Icons.map),
         label: 'GearGuide', 
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.forum_outlined),
+        selectedIcon: Icon(Icons.forum),
+        label: 'Forum',
       ),
       const NavigationDestination(
         icon: Icon(Icons.person_outline),
@@ -211,7 +219,60 @@ class _HomePageState extends State<HomePage> {
         destinations: _destinations,
         backgroundColor: Colors.white,
         elevation: 3,
-        indicatorColor: Colors.blue.withOpacity(0.2),
+        indicatorColor: Colors.blue.withValues(alpha: 0.2),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// FORUM PLACEHOLDER PAGE (Modul orang lain)
+// ============================================================
+class _ForumPlaceholderPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Forum'),
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Menggunakan asset community.png yang sama dengan explore features
+            Image.asset(
+              'assets/images/community.png',
+              width: 120,
+              height: 120,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.forum,
+                  size: 80,
+                  color: Colors.grey.shade400,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Forum',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

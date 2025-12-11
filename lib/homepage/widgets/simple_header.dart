@@ -79,28 +79,34 @@ class _SimpleHeaderState extends State<SimpleHeader> {
             Expanded(
               child: InkWell(
                 onTap: () async {
-                  // chevinka: Fetch username sebelum navigate untuk pass ke homepage
+                  // chevinka: Fetch username dan isAdmin sebelum navigate untuk pass ke homepage
+                  final navigator = Navigator.of(context);
                   final request = Provider.of<CookieRequest>(context, listen: false);
                   String? username;
+                  bool isAdmin = false;
                   
                   if (request.loggedIn) {
                     try {
                       final profile = await ProfileService.getProfile(request);
                       if (profile != null) {
                         username = profile.username;
+                        // isAdmin = isStaff || isSuperuser (sesuai logic di login.dart)
+                        isAdmin = profile.isStaff || profile.isSuperuser;
                       }
                     } catch (e) {
                       // Ignore error, tetap navigate
                     }
                   }
                   
-                  if (mounted) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/',
-                      arguments: username != null ? {'username': username} : null,
-                    );
-                  }
+                  // Pastikan widget masih mounted sebelum navigate
+                  if (!mounted) return;
+                  
+                  navigator.pushReplacementNamed(
+                    '/',
+                    arguments: username != null 
+                        ? {'username': username, 'isAdmin': isAdmin}
+                        : null,
+                  );
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

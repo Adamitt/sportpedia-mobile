@@ -185,19 +185,38 @@ class HomepageApiService {
   // ============================================
 
   /// GET: Search Gear dan Sport (sesuai logic Django)
+  /// 
+  /// Endpoint: /api/search/
+  /// Query parameter: 'q' (query string)
+  /// Response structure (sesuai Django api_search):
+  /// {
+  ///   "query": string,
+  ///   "gear_results": List<Map>,
+  ///   "sport_results": List<Map>
+  /// }
+  /// 
+  /// Django akan:
+  /// 1. Normalize query terms (split by non-word chars, lowercase, filter short terms)
+  /// 2. Search in Gear: name, description, function, sport.name
+  /// 3. Search in Sport: name, description, history
+  /// 4. Return matching results
   static Future<Map<String, dynamic>> search({
     required String query,
   }) async {
     try {
+      // Endpoint sesuai Django: landingpage/urls.py path("api/search/", ...)
       final uri = Uri.parse('$baseUrl/api/search/')
           .replace(queryParameters: {
-        'q': query,
+        'q': query, // Django menerima 'q', 'query', atau 'search' - kita pakai 'q'
       });
 
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        
+        // Response structure harus sesuai dengan Django api_search response
+        // Django returns: {"query": str, "gear_results": [...], "sport_results": [...]}
         return {
           'query': data['query'] ?? '',
           'gear_results': (data['gear_results'] as List?) ?? [],
