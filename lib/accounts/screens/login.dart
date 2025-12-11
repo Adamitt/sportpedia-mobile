@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart'; 
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // Deteksi Web/Mobile
 import 'register.dart';
-
-// Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = false;
@@ -26,15 +25,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // Warna dari Desain Figma
+  // Warna Tema
   final Color _primaryDark = const Color(0xFF1C3264);
   final Color _primaryMid = const Color(0xFF2A4B97);
   final Color _primaryRed = const Color(0xFF992626);
   final Color _textGrey = const Color(0xFF6C7278);
 
+  // --- PERBAIKAN: Base URL Otomatis ---
+  final String baseUrl = kIsWeb ? "http://localhost:8000" : "http://10.0.2.2:8000";
+
   @override
   void initState() {
     super.initState();
+    _initAnimations();
+  }
+
+  void _initAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -66,6 +72,58 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // --- LOGIC LOGIN YANG DIPERBAIKI ---
+  Future<void> _handleLogin(CookieRequest request) async {
+    setState(() => _isLoading = true);
+
+    String username = _usernameController.text.trim();
+    String password = _passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      setState(() => _isLoading = false);
+      _showSnackBar('Username dan password harus diisi', isError: true);
+      return;
+    }
+
+    try {
+      // PERBAIKAN: Endpoint disesuaikan dengan urls.py (/accounts/api/login/)
+      final response = await request.login(
+        "$baseUrl/accounts/api/login/", 
+        {'username': username, 'password': password},
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+
+        if (request.loggedIn) {
+          String message = response['message'] ?? 'Login berhasil';
+          String uname = response['username'] ?? username;
+          bool isStaff = response['is_staff'] ?? false;
+          bool isSuperuser = response['is_superuser'] ?? false;
+          bool isAdmin = isStaff || isSuperuser;
+
+          Navigator.pushReplacementNamed(
+            context,
+            '/',
+            arguments: {'isAdmin': isAdmin, 'username': uname},
+          );
+
+          _showSnackBar('Selamat datang, $uname! 🎉', isError: false);
+        } else {
+          _showSnackBar(response['message'] ?? 'Login gagal.', isError: true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // Pesan error lebih jelas
+        _showSnackBar('Gagal terhubung ke server. Cek koneksi.', isError: true);
+        debugPrint("Login Error: $e");
+      }
+    }
+  }
+
+  // --- UI WIDGETS ---
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
@@ -85,94 +143,34 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
         child: Stack(
           children: [
-            // Decorative circles untuk visual appeal
-            Positioned(
-              top: -50,
-              right: -50,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 100,
-              left: -80,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.03),
-                  ),
-                ),
-              ),
-            ),
-
-            // Header Text dengan animasi
+            _buildDecorativeCircle(top: -50, right: -50, size: 200, opacity: 0.05),
+            _buildDecorativeCircle(top: 100, left: -80, size: 160, opacity: 0.03),
+            
             Positioned(
               top: screenHeight * 0.10,
-              left: 28,
-              right: 28,
+              left: 28, right: 28,
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Selamat datang\nkembali! 👋',
-                      style: GoogleFonts.poppins( // Ganti Poppins
-                        color: Colors.white,
-                        fontSize: screenWidth > 360 ? 28 : 24,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
+                    Text('Selamat datang\nkembali! 👋', style: GoogleFonts.poppins(color: Colors.white, fontSize: screenWidth > 360 ? 28 : 24, height: 1.3, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 12),
-                    Text(
-                      'Lanjutkan perjalanan olahragamu dan\ncapai target kesehatanmu.',
-                      style: GoogleFonts.poppins( // Ganti Poppins
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 14,
-                        height: 1.5,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text('Lanjutkan perjalanan olahragamu.', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
                   ],
                 ),
               ),
             ),
 
-            // White Card Container dengan animasi slide
             Align(
               alignment: Alignment.bottomCenter,
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Container(
-                  width: double.infinity,
                   height: screenHeight * 0.68,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 28.0),
@@ -182,128 +180,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 36),
-
-                          // Toggle Login / Sign Up dengan animasi hover
                           _buildToggleButton(context),
-
                           const SizedBox(height: 36),
-
-                          // Input Username
-                          _buildInputLabel('Username'),
-                          const SizedBox(height: 10),
-                          _buildTextField(
-                            controller: _usernameController,
-                            hint: 'Masukkan username',
-                            icon: Icons.person_outline_rounded,
-                          ),
-
+                          _buildInputLabel('Username'), const SizedBox(height: 10),
+                          _buildTextField(controller: _usernameController, hint: 'Masukkan username', icon: Icons.person_outline),
                           const SizedBox(height: 24),
-
-                          // Input Password
-                          _buildInputLabel('Password'),
-                          const SizedBox(height: 10),
-                          _buildTextField(
-                            controller: _passwordController,
-                            hint: 'Masukkan password',
-                            icon: Icons.lock_outline_rounded,
-                            isPassword: true,
-                          ),
-
+                          _buildInputLabel('Password'), const SizedBox(height: 10),
+                          _buildTextField(controller: _passwordController, hint: 'Masukkan password', icon: Icons.lock_outline, isPassword: true),
                           const SizedBox(height: 20),
-
-                          // Remember Me & Forgot Password
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _rememberMe = !_rememberMe;
-                                  });
-                                },
-                                child: Row(
-                                  children: [
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        color: _rememberMe ? _primaryDark : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(
-                                          color: _rememberMe ? _primaryDark : _textGrey.withOpacity(0.4),
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: _rememberMe
-                                          ? const Icon(Icons.check, size: 14, color: Colors.white)
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Remember me',
-                                      style: GoogleFonts.poppins( // Ganti Poppins
-                                        color: _textGrey,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  // TODO: Implement forgot password
-                                },
-                                child: Text(
-                                  'Lupa Password?',
-                                  style: GoogleFonts.poppins( // Ganti Poppins
-                                    color: _primaryDark,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
+                          _buildOptionsRow(),
                           const SizedBox(height: 36),
-
-                          // Login Button dengan animasi
                           _buildLoginButton(request),
-
-                          const SizedBox(height: 24),
-
-                          // Divider dengan "atau"
-                          Row(
-                            children: [
-                              Expanded(child: Divider(color: Colors.grey[300])),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'atau',
-                                  style: GoogleFonts.poppins( // Ganti Poppins
-                                    color: _textGrey.withOpacity(0.6),
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Expanded(child: Divider(color: Colors.grey[300])),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Social Login Buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildSocialButton(Icons.g_mobiledata_rounded, 'Google'),
-                              const SizedBox(width: 16),
-                              _buildSocialButton(Icons.apple_rounded, 'Apple'),
-                            ],
-                          ),
-
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -318,335 +205,58 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildDecorativeCircle({double? top, double? left, double? right, double? bottom, required double size, required double opacity}) {
+    return Positioned(top: top, left: left, right: right, bottom: bottom, child: FadeTransition(opacity: _fadeAnimation, child: Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(opacity)))));
+  }
+
   Widget _buildToggleButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FA),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                boxShadow: [
-                  BoxShadow(
-                    color: _primaryDark.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  'Log In',
-                  style: GoogleFonts.poppins( // Ganti Poppins
-                    color: const Color(0xFF1C3264),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    transitionDuration: const Duration(milliseconds: 300),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                color: Colors.transparent,
-                child: Center(
-                  child: Text(
-                    'Sign Up',
-                    style: GoogleFonts.poppins( // Ganti Poppins
-                      color: _textGrey.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(50)),
+      child: Row(children: [
+        Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(50), boxShadow: [BoxShadow(color: _primaryDark.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 3))]), child: Center(child: Text('Log In', style: GoogleFonts.poppins(color: const Color(0xFF1C3264), fontWeight: FontWeight.w600))))),
+        Expanded(child: GestureDetector(onTap: () => Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const RegisterPage(), transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c))), child: Container(padding: const EdgeInsets.symmetric(vertical: 14), color: Colors.transparent, child: Center(child: Text('Sign Up', style: GoogleFonts.poppins(color: _textGrey.withOpacity(0.7), fontWeight: FontWeight.w500)))))),
+      ]),
     );
   }
 
-  Widget _buildInputLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.poppins( // Ganti Poppins
-        color: _textGrey,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
+  Widget _buildInputLabel(String text) => Text(text, style: GoogleFonts.poppins(color: _textGrey, fontSize: 14, fontWeight: FontWeight.w600));
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-  }) {
+  Widget _buildTextField({required TextEditingController controller, required String hint, required IconData icon, bool isPassword = false}) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
       child: TextField(
-        controller: controller,
-        obscureText: isPassword ? _obscurePassword : false,
-        style: GoogleFonts.poppins( // Ganti Poppins
-          fontWeight: FontWeight.w500,
-          fontSize: 15,
-        ),
+        controller: controller, obscureText: isPassword ? _obscurePassword : false,
         decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: GoogleFonts.poppins( // Ganti Poppins
-            color: Colors.grey[400],
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          prefixIcon: Icon(icon, color: _textGrey.withOpacity(0.6), size: 22),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: _textGrey.withOpacity(0.6),
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                )
-              : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.grey[200]!),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.grey[200]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: _primaryDark, width: 2),
-          ),
+          hintText: hint, filled: true, fillColor: Colors.white, prefixIcon: Icon(icon, color: _textGrey.withOpacity(0.6)),
+          suffixIcon: isPassword ? IconButton(icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: _textGrey.withOpacity(0.6)), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)) : null,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: _primaryDark, width: 2)),
         ),
       ),
     );
+  }
+
+  Widget _buildOptionsRow() {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      GestureDetector(onTap: () => setState(() => _rememberMe = !_rememberMe), child: Row(children: [
+        AnimatedContainer(duration: const Duration(milliseconds: 200), width: 20, height: 20, decoration: BoxDecoration(color: _rememberMe ? _primaryDark : Colors.transparent, borderRadius: BorderRadius.circular(5), border: Border.all(color: _rememberMe ? _primaryDark : _textGrey.withOpacity(0.4), width: 2)), child: _rememberMe ? const Icon(Icons.check, size: 14, color: Colors.white) : null),
+        const SizedBox(width: 8), Text('Remember me', style: GoogleFonts.poppins(color: _textGrey, fontSize: 13, fontWeight: FontWeight.w500)),
+      ])),
+      Text('Lupa Password?', style: GoogleFonts.poppins(color: _primaryDark, fontSize: 13, fontWeight: FontWeight.w600)),
+    ]);
   }
 
   Widget _buildLoginButton(CookieRequest request) {
     return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: LinearGradient(
-          colors: [_primaryDark, _primaryMid],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _primaryDark.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : () => _handleLogin(request),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Text(
-                'Log In',
-                style: GoogleFonts.poppins( // Ganti Poppins
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                ),
-              ),
-      ),
+      height: 56, width: double.infinity,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), gradient: LinearGradient(colors: [_primaryDark, _primaryMid]), boxShadow: [BoxShadow(color: _primaryDark.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))]),
+      child: ElevatedButton(onPressed: _isLoading ? null : () => _handleLogin(request), style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: _isLoading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : Text('Log In', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white))),
     );
-  }
-
-  Widget _buildSocialButton(IconData icon, String label) {
-    return Container(
-      width: 100,
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            // TODO: Implement social login
-          },
-          child: Center(
-            child: Icon(
-              icon,
-              size: 30,
-              color: _textGrey,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleLogin(CookieRequest request) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    String username = _usernameController.text.trim();
-    String password = _passwordController.text;
-
-    if (username.isEmpty || password.isEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showSnackBar('Username dan password harus diisi', isError: true);
-      return;
-    }
-
-    try {
-      final response = await request.login(
-        "http://localhost:8000/accounts/flutter-login/",
-        {'username': username, 'password': password},
-      );
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (request.loggedIn) {
-          String message = response['message'] ?? 'Login berhasil';
-          String uname = response['username'] ?? username;
-          bool isStaff = response['is_staff'] ?? false;
-          bool isSuperuser = response['is_superuser'] ?? false;
-          bool isAdmin = isStaff || isSuperuser;
-
-          Navigator.pushReplacementNamed(
-            context,
-            '/',
-            arguments: {'isAdmin': isAdmin, 'username': uname},
-          );
-
-          _showSnackBar(
-            isAdmin
-                ? 'Selamat datang, Admin $uname! 🎉'
-                : '$message Selamat datang, $uname! 🎉',
-            isError: false,
-          );
-        } else {
-          _showSnackBar(
-            response['message'] ?? 'Login gagal. Periksa username dan password.',
-            isError: true,
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        _showSnackBar('Terjadi kesalahan: $e', isError: true);
-      }
-    }
   }
 
   void _showSnackBar(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: GoogleFonts.poppins( // Ganti Poppins
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: isError 
-              ? const Color(0xFFEF4444) 
-              : const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    ScaffoldMessenger.of(context)..hideCurrentSnackBar()..showSnackBar(SnackBar(content: Text(message), backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), margin: const EdgeInsets.all(16)));
   }
 }
