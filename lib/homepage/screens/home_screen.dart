@@ -71,9 +71,9 @@ class _HomepageHomeScreenState extends State<HomepageHomeScreen> {
             child: TestimonialsSection(),
           ),
 
-          // Bottom padding
+          // Bottom padding untuk bottom navbar
           const SliverToBoxAdapter(
-            child: SizedBox(height: 32),
+            child: SizedBox(height: 80), // Ditambah untuk bottom navbar
           ),
         ],
       ),

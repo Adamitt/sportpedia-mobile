@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
-// TAMBAHAN: Import untuk navigate ke detail gear
+// Import untuk navigate ke detail
 import '../../screens/gear_detail_page.dart';
 import '../../models/gear_list.dart';
 import '../../services/gearguide_service.dart';
-// TAMBAHAN: Import untuk navigate ke detail sport (from sport library module)
 import '../../sport_library/models/sport.dart';
 import '../../sport_library/screens/sport_detail.dart';
 
@@ -24,16 +23,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   String? _error;
   List<dynamic> _gearResults = [];
   List<dynamic> _sportResults = [];
-  List<Datum> _allGears = []; // TAMBAHAN: Cache semua gears untuk convert search result ke Datum
+  List<Datum> _allGears = []; 
 
   @override
   void initState() {
     super.initState();
-    _loadAllGears(); // TAMBAHAN: Load semua gears untuk convert search result
+    _loadAllGears(); 
     _performSearch();
   }
 
-  // TAMBAHAN: Load semua gears dari gearguide API untuk convert search result ke Datum
   Future<void> _loadAllGears() async {
     try {
       final gears = await GearGuideService.fetchGears();
@@ -41,7 +39,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         _allGears = gears;
       });
     } catch (e) {
-      // Ignore error, hanya untuk cache
       debugPrint('Warning: Failed to load all gears: $e');
     }
   }
@@ -76,14 +73,21 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        leading: Container(
+          margin: const EdgeInsets.only(left: 12, top: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
       ),
       body: CustomScrollView(
         slivers: [
-          // Search Header
+          // 1. Search Header
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
@@ -97,44 +101,37 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   ],
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(24, 100, 24, 100),
+              padding: const EdgeInsets.fromLTRB(24, 110, 24, 60),
               child: Column(
                 children: [
                   Text(
                     'Hasil pencarian untuk:',
                     style: GoogleFonts.poppins(
-                      fontSize: MediaQuery.of(context).size.width > 768 ? 40 : 28,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: Colors.white.withOpacity(0.3),
-                        width: 2,
+                        width: 1.5,
                       ),
                     ),
                     child: Text(
                       widget.query,
                       style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Menemukan konten terbaik untukmu',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
                 ],
@@ -142,313 +139,284 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             ),
           ),
 
-          // Results Content
+          // 2. Content Results
           if (_loading)
             const SliverFillRemaining(
-              child: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
-                ),
-              ),
+              child: Center(child: CircularProgressIndicator(color: AppColors.primaryBlue)),
             )
           else if (_error != null)
             SliverFillRemaining(
               child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error searching',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _error!,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(color: Colors.grey.shade600),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _performSearch,
-                        child: const Text('Try Again'),
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text('Terjadi kesalahan', style: GoogleFonts.poppins()),
+                    TextButton(onPressed: _performSearch, child: const Text('Coba Lagi')),
+                  ],
                 ),
               ),
             )
           else
             SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -60),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+              child: Transform.translate(
+                offset: const Offset(0, -30), // Tarik ke atas sedikit agar estetik
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gear Results Section
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionHeader(
-                            icon: Icons.precision_manufacturing,
-                            title: 'Gear',
-                            count: _gearResults.length,
-                          ),
-                          const SizedBox(height: 32),
-                          if (_gearResults.isEmpty)
-                            _buildEmptyState('Tidak ada gear yang cocok dengan pencarian Anda')
-                          else
-                            _buildGearGrid(_gearResults),
-                        ],
-                      ),
+                    // --- SECTION GEAR ---
+                    _buildResultSection(
+                      title: 'Gear',
+                      icon: Icons.precision_manufacturing,
+                      count: _gearResults.length,
+                      isEmpty: _gearResults.isEmpty,
+                      // Gunakan Horizontal List
+                      child: _buildHorizontalGearList(),
                     ),
 
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 24),
 
-                    // Sport Results Section
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionHeader(
-                            icon: Icons.sports_soccer,
-                            title: 'Sports',
-                            count: _sportResults.length,
-                          ),
-                          const SizedBox(height: 32),
-                          if (_sportResults.isEmpty)
-                            _buildEmptyState('Tidak ada olahraga yang cocok dengan pencarian Anda')
-                          else
-                            _buildSportGrid(_sportResults),
-                        ],
-                      ),
+                    // --- SECTION SPORTS ---
+                    _buildResultSection(
+                      title: 'Sports',
+                      icon: Icons.sports_soccer,
+                      count: _sportResults.length,
+                      isEmpty: _sportResults.isEmpty,
+                      // Gunakan Horizontal List
+                      child: _buildHorizontalSportList(),
                     ),
-
-                    const SizedBox(height: 80),
+                    
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
             ),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader({required IconData icon, required String title, required int count}) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.primaryBlue, size: 28),
-        ),
-        const SizedBox(width: 16),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primaryBlueDark,
-          ),
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primaryBlue,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            '$count items',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(String message) {
+  // Widget Container untuk setiap Section
+  Widget _buildResultSection({
+    required String title,
+    required IconData icon,
+    required int count,
+    required bool isEmpty,
+    required Widget child,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(48),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
-            textAlign: TextAlign.center,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: AppColors.primaryBlue, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBlueDark,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlueDark,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$count items',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Isi Content (Horizontal List atau Empty State)
+          if (isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tidak ada hasil ditemukan',
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            child,
         ],
       ),
     );
   }
 
-  Widget _buildGearGrid(List<dynamic> gears) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : 
-                       MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        crossAxisSpacing: 24,
-        mainAxisSpacing: 24,
-        childAspectRatio: 0.75,
+  // --- HORIZONTAL LIST GEAR ---
+  Widget _buildHorizontalGearList() {
+    return SizedBox(
+      height: 310, // Tinggi fix untuk list horizontal
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: _gearResults.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: 200, // Lebar fix tiap kartu
+            child: _buildGearCard(_gearResults[index]),
+          );
+        },
       ),
-      itemCount: gears.length,
-      itemBuilder: (context, index) {
-        final gear = gears[index];
-        return _buildGearCard(gear);
-      },
     );
   }
 
+  // --- HORIZONTAL LIST SPORTS ---
+  Widget _buildHorizontalSportList() {
+    return SizedBox(
+      height: 230, // Tinggi fix untuk list horizontal
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        scrollDirection: Axis.horizontal,
+        itemCount: _sportResults.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: 260, // Lebar fix tiap kartu
+            child: _buildSportCard(_sportResults[index]),
+          );
+        },
+      ),
+    );
+  }
+
+  // --- CARD GEAR (Fix Overflow) ---
   Widget _buildGearCard(Map<String, dynamic> gear) {
     return Card(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        onTap: () {
-          // TAMBAHAN: Navigate ke detail gear dengan mencari gear dari cache
-          _navigateToGearDetail(gear);
-        },
+        onTap: () => _navigateToGearDetail(gear),
         borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: gear['image'] != null && gear['image'].toString().isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: Image.network(
-                          gear['image'].toString(),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Icon(Icons.sports, size: 64, color: Colors.grey.shade400),
-                            );
-                          },
-                        ),
-                      )
-                    : Center(
-                        child: Icon(Icons.sports, size: 64, color: Colors.grey.shade400),
-                      ),
+            // Gambar (Fixed Height)
+            Container(
+              height: 140, // Tinggi gambar tetap agar tidak geser konten lain
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               ),
+              child: gear['image'] != null && gear['image'].toString().isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: Image.network(
+                        gear['image'].toString(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(Icons.sports, color: Colors.grey.shade400, size: 40),
+                      ),
+                    )
+                  : Icon(Icons.sports, color: Colors.grey.shade400, size: 40),
             ),
-            // Content
+            
+            // Konten
             Expanded(
-              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Badge Kategori
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.primaryBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '⚡ ${gear['sport']?['name'] ?? 'Unknown'}',
+                        gear['sport']?['name'] ?? 'General',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlueDark,
+                          color: AppColors.primaryBlue,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
+                    
+                    // Nama Gear
                     Text(
                       gear['name'] ?? '',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryBlueDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    
+                    const Spacer(), // Dorong harga/detail ke bawah
+                    
+                    // Harga
                     Text(
-                      gear['price_range'] ?? 'Hubungi untuk harga',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                      gear['price_range'] ?? '-',
+                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 4),
+                    
+                    // Link Detail
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
                           'Lihat Detail',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryBlue,
-                          ),
+                          style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, size: 16, color: AppColors.primaryBlue),
+                        const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.primaryBlue),
                       ],
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -459,128 +427,74 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
-  Widget _buildSportGrid(List<dynamic> sports) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 1024 ? 3 : 
-                       MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        crossAxisSpacing: 24,
-        mainAxisSpacing: 24,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: sports.length,
-      itemBuilder: (context, index) {
-        final sport = sports[index];
-        return _buildSportCard(sport);
-      },
-    );
-  }
-
+  // --- CARD SPORT (Fix Overflow) ---
   Widget _buildSportCard(Map<String, dynamic> sport) {
     return Card(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        onTap: () {
-          // Navigate ke sport detail page yang existing (milik sport library module)
-          final sportId = sport['id'];
-          final sportName = sport['name'] ?? '';
-          
-          if (sportId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Sport ID tidak ditemukan'),
-                backgroundColor: Colors.red,
-              ),
-            );
-            return;
-          }
-
-          // Create Sport object dari search result untuk pass ke detail page
-          final sportObj = Sport(
-            id: sportId,
-            name: sportName,
-            category: sport['category'] ?? 'Unknown',
-            difficulty: sport['difficulty'] ?? 'Unknown',
-            description: sport['description'] ?? '',
-            history: sport['history'] ?? '',
-            rules: List<String>.from(sport['rules'] ?? []),
-            techniques: List<String>.from(sport['techniques'] ?? []),
-            benefits: List<String>.from(sport['benefits'] ?? []),
-            popularCountries: List<String>.from(sport['popular_countries'] ?? []),
-            tags: List<String>.from(sport['tags'] ?? []),
-            image: sport['image'] ?? '',
-            isSaved: sport['is_saved'] ?? false,
-          );
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SportDetailPage(sport: sportObj),
-            ),
-          );
-        },
+        onTap: () => _navigateToSportDetail(sport),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.accentRed.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '📚 Library',
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
                     color: AppColors.accentRedDark,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              
+              // Nama Sport
               Text(
                 sport['name'] ?? '',
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.primaryBlueDark,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              
+              // Deskripsi
               Expanded(
                 child: Text(
-                  sport['description'] ?? sport['history'] ?? '',
+                  sport['description'] ?? sport['history'] ?? 'No description',
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Colors.grey.shade600,
-                    height: 1.5,
+                    height: 1.4,
                   ),
-                  maxLines: 4,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 16),
+              
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Pelajari Lebih Lanjut',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryBlue,
-                    ),
+                    'Pelajari',
+                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
                   ),
                   const SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 16, color: AppColors.primaryBlue),
+                  const Icon(Icons.arrow_forward, size: 14, color: AppColors.primaryBlue),
                 ],
               ),
             ],
@@ -590,62 +504,54 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
-  // TAMBAHAN: Helper untuk navigate ke gear detail dengan convert search result ke Datum
+  // --- NAVIGATION HELPERS ---
   void _navigateToGearDetail(Map<String, dynamic> gearMap) {
     final gearId = gearMap['id']?.toString();
-    if (gearId == null || gearId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gear ID tidak ditemukan'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    if (gearId == null || gearId.isEmpty) return;
 
-    // Cari gear dari cache _allGears berdasarkan ID
     final gear = _allGears.firstWhere(
       (g) => g.id == gearId,
-      orElse: () => _convertSearchResultToDatum(gearMap), // Fallback: convert search result
+      orElse: () => _convertSearchResultToDatum(gearMap),
     );
 
-    // Navigate ke detail gear
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => GearDetailPage(datum: gear),
-      ),
+      MaterialPageRoute(builder: (context) => GearDetailPage(datum: gear)),
     );
   }
 
-  // TAMBAHAN: Helper untuk convert search result (Map) ke Datum object
+  void _navigateToSportDetail(Map<String, dynamic> sport) {
+    final sportObj = Sport(
+      id: sport['id'] ?? 0,
+      name: sport['name'] ?? '',
+      category: sport['category'] ?? 'Unknown',
+      difficulty: sport['difficulty'] ?? 'Unknown',
+      description: sport['description'] ?? '',
+      history: sport['history'] ?? '',
+      rules: List<String>.from(sport['rules'] ?? []),
+      techniques: List<String>.from(sport['techniques'] ?? []),
+      benefits: List<String>.from(sport['benefits'] ?? []),
+      popularCountries: List<String>.from(sport['popular_countries'] ?? []),
+      tags: List<String>.from(sport['tags'] ?? []),
+      image: sport['image'] ?? '',
+      isSaved: sport['is_saved'] ?? false,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SportDetailPage(sport: sportObj)),
+    );
+  }
+
   Datum _convertSearchResultToDatum(Map<String, dynamic> gearMap) {
-    // Map level dari string ke Level enum
-    final levelStr = (gearMap['level']?.toString().toLowerCase() ?? '');
-    Level level;
-    if (levelStr.contains('pemula') || levelStr.contains('beginner')) {
-      level = Level.BEGINNER;
-    } else if (levelStr.contains('menengah') || levelStr.contains('intermediate')) {
-      level = Level.INTERMEDIATE;
-    } else if (levelStr.contains('profesional') || levelStr.contains('advanced') || levelStr.contains('lanjutan')) {
-      level = Level.ADVANCED;
-    } else {
-      level = Level.UNKNOWN;
-    }
-
-    // Extract sport info
-    final sportMap = gearMap['sport'];
-    final sportName = sportMap is Map ? (sportMap['name']?.toString() ?? '') : '';
-    final sportId = ''; // Tidak ada di search result, kosongkan saja
-
     return Datum(
       id: gearMap['id']?.toString() ?? '',
-      sportId: sportId,
-      sportName: sportName,
+      sportId: '',
+      sportName: gearMap['sport'] is Map ? (gearMap['sport']['name'] ?? '') : '',
       name: gearMap['name']?.toString() ?? '',
       function: gearMap['function']?.toString() ?? '',
       description: gearMap['description']?.toString() ?? '',
-      level: level,
+      level: Level.UNKNOWN, 
       levelDisplay: gearMap['level']?.toString() ?? '',
       priceRange: gearMap['price_range']?.toString() ?? '',
       recommendedBrands: [],
@@ -658,4 +564,3 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 }
-

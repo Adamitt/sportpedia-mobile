@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
         // Menggunakan Icon Gear/Map untuk GearGuide
         icon: Icon(Icons.map_outlined),
         selectedIcon: Icon(Icons.map),
-        label: 'GearGuide', 
+        label: 'Gear', // Dipendekkan untuk menghindari overflow
       ),
       const NavigationDestination(
         icon: Icon(Icons.forum_outlined),
@@ -209,17 +209,21 @@ class _HomePageState extends State<HomePage> {
       // Tidak perlu AppBar di sini jika setiap Page sudah punya AppBar sendiri
       // Tapi body akan berganti sesuai tab yang dipilih
       body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: _destinations,
-        backgroundColor: Colors.white,
-        elevation: 3,
-        indicatorColor: Colors.blue.withValues(alpha: 0.2),
+      bottomNavigationBar: SafeArea(
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          destinations: _destinations,
+          backgroundColor: Colors.white,
+          elevation: 3,
+          indicatorColor: Colors.blue.withValues(alpha: 0.2),
+          height: 70, // Tambahkan height untuk spacing yang lebih baik
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        ),
       ),
     );
   }

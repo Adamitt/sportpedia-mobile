@@ -6,8 +6,12 @@ class QuickNavigationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Deteksi ukuran layar
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: Colors.grey.shade300),
@@ -21,55 +25,67 @@ class QuickNavigationSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 2,
-                    decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        AppColors.primaryBlue,
-                        Colors.transparent,
-                      ],
-                    ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Explore Features',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      foreground: Paint()
-                      ..shader = LinearGradient(
-                        colors: [
-                          AppColors.primaryBlueDark,
-                          AppColors.primaryBlue,
-                        ],
-                      ).createShader(
-                          const Rect.fromLTWH(0, 0, 200, 70),
+                  // [FIX] Garis dekorasi mengecil/hilang di layar sangat kecil
+                  if (screenWidth > 350)
+                    Container(
+                      width: isMobile ? 24 : 48,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            AppColors.primaryBlue,
+                            Colors.transparent,
+                          ],
                         ),
+                      ),
+                    ),
+                  
+                  SizedBox(width: isMobile ? 8 : 12),
+                  
+                  // [FIX] Gunakan Flexible agar teks bisa menyesuaikan lebar
+                  Flexible(
+                    child: Text(
+                      'Explore Features',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isMobile ? 24 : 32, // Font lebih kecil di mobile
+                        fontWeight: FontWeight.bold,
+                        foreground: Paint()
+                          ..shader = LinearGradient(
+                            colors: [
+                              AppColors.primaryBlueDark,
+                              AppColors.primaryBlue,
+                            ],
+                          ).createShader(
+                            const Rect.fromLTWH(0, 0, 200, 70),
+                          ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 48,
-                    height: 2,
-                    decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        AppColors.primaryBlue,
-                        Colors.transparent,
-                      ],
+                  
+                  SizedBox(width: isMobile ? 8 : 12),
+                  
+                  if (screenWidth > 350)
+                    Container(
+                      width: isMobile ? 24 : 48,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            AppColors.primaryBlue,
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
                     ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
                 'Choose your path to sports excellence',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey.shade600,
@@ -87,10 +103,11 @@ class QuickNavigationSection extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
+                crossAxisCount: screenWidth > 600 ? 4 : 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.0,
+                // [FIX] Aspect Ratio disesuaikan
+                childAspectRatio: 0.85, 
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
@@ -99,7 +116,7 @@ class QuickNavigationSection extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
           // Fun Facts
           Padding(
@@ -109,9 +126,9 @@ class QuickNavigationSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.2,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                childAspectRatio: 1.5,
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
@@ -128,15 +145,15 @@ class QuickNavigationSection extends StatelessWidget {
     final items = [
       {
         'title': 'Sports Library',
-        'description': 'Explore sports fundamentals — history, rules, and beginner guides.',
+        'description': 'History, rules, and guides.',
         'image': 'assets/images/sportlibrary.png',
         'color': Colors.blue,
-        'badge': '50+ Sports',
+        'badge': '50+',
         'route': '/library',
       },
       {
         'title': 'Community',
-        'description': 'A space to share tips, and motivation with sports lovers.',
+        'description': 'Share tips with lovers.',
         'image': 'assets/images/community.png',
         'color': Colors.purple,
         'badge': 'Active',
@@ -144,18 +161,18 @@ class QuickNavigationSection extends StatelessWidget {
       },
       {
         'title': 'Gear Guide',
-        'description': 'Find the right equipment for your game, choose, and play smarter.',
+        'description': 'Find the right equipment.',
         'image': 'assets/images/gearguide.png',
         'color': Colors.orange,
-        'badge': '⭐ Guide',
+        'badge': 'Guide',
         'route': '/gearguide',
       },
       {
         'title': 'Video Gallery',
-        'description': 'Learn visually with step-by-step sports tutorials for every level.',
+        'description': 'Visual tutorials for all.',
         'image': 'assets/images/video.png',
         'color': Colors.red,
-        'badge': '📹 40+ Videos',
+        'badge': 'Videos',
         'route': '/videos',
       },
     ];
@@ -175,47 +192,35 @@ class QuickNavigationSection extends StatelessWidget {
           ),
         ],
       ),
-        child: Material(
+      child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
             final title = item['title'] as String;
-            // Navigate berdasarkan judul feature
             if (title == 'Sports Library') {
               Navigator.pushNamed(context, '/sportlibrary');
             } else if (title == 'Gear Guide') {
               Navigator.pushNamed(context, '/gearguide');
             } else if (title == 'Video Gallery') {
               Navigator.pushNamed(context, '/videos');
-            } else if (title == 'Community') {
-              // Community/Forum - bisa diarahkan ke route yang sesuai jika ada
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Community page coming soon'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('$title page coming soon'),
-                  duration: const Duration(seconds: 2),
-                ),
+                const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1)),
               );
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Badge
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: (item['color'] as Color).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -230,27 +235,22 @@ class QuickNavigationSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
 
-                // Image dari asset
+                // Image
                 Container(
-                  height: 56,
-                  width: 56,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     color: (item['color'] as Color).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   child: Image.asset(
                     item['image'] as String,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      // Fallback ke icon jika gambar tidak ada
-                      return Icon(
-                        Icons.category,
-                        size: 28,
-                        color: item['color'] as Color,
-                      );
+                      return Icon(Icons.category, size: 24, color: item['color'] as Color);
                     },
                   ),
                 ),
@@ -259,57 +259,21 @@ class QuickNavigationSection extends StatelessWidget {
                 // Title
                 Text(
                   item['title'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
                   textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
 
                 // Description
-                Expanded(
+                Flexible(
                   child: Text(
                     item['description'] as String,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
                     textAlign: TextAlign.center,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 4),
-
-                // Button
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: (item['color'] as Color).withValues(alpha: 0.5)),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Explore',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: item['color'] as Color,
-                        ),
-                      ),
-                      const SizedBox(width: 3),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: 12,
-                        color: item['color'] as Color,
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -322,16 +286,16 @@ class QuickNavigationSection extends StatelessWidget {
 
   Widget _buildFunFactCard(int index) {
     final facts = [
-      {'value': '50+', 'label': 'Sports Covered', 'color': Colors.blue},
-      {'value': '200+', 'label': 'Active Members', 'color': Colors.purple},
-      {'value': '300+', 'label': 'Gear Reviews', 'color': Colors.orange},
-      {'value': '100+', 'label': 'Video Tutorials', 'color': Colors.red},
+      {'value': '50+', 'label': 'Sports', 'color': Colors.blue},
+      {'value': '200+', 'label': 'Members', 'color': Colors.purple},
+      {'value': '300+', 'label': 'Gears', 'color': Colors.orange},
+      {'value': '100+', 'label': 'Videos', 'color': Colors.red},
     ];
 
     final fact = facts[index];
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -341,7 +305,7 @@ class QuickNavigationSection extends StatelessWidget {
             (fact['color'] as Color).withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: (fact['color'] as Color).withValues(alpha: 0.3),
         ),
@@ -352,25 +316,19 @@ class QuickNavigationSection extends StatelessWidget {
           Text(
             fact['value'] as String,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: fact['color'] as Color,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             fact['label'] as String,
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 8, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),
     );
   }
 }
-
