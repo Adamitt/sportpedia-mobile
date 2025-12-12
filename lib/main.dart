@@ -15,6 +15,10 @@ import 'profile_app/screens/account_settings_screen.dart';
 import 'admin_sportpedia/screens/admin_dashboard_screen.dart';
 import 'admin_sportpedia/screens/manage_admin_screen.dart';
 
+
+// import screens dari sportforum
+import 'sportforum/screens/forum_entry_list.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -57,6 +61,8 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const RegisterPage());
             case '/profile':
               return MaterialPageRoute(builder: (_) => const ProfileScreen());
+            case '/forum':
+            return MaterialPageRoute(builder: (_) => const ForumEntryListPage());
             case '/activity-history':
               return MaterialPageRoute(
                 builder: (_) => const ActivityHistoryScreen(),
@@ -110,10 +116,7 @@ class _HomePageState extends State<HomePage> {
         title: 'Galeri Video',
         icon: Icons.video_library,
       ),
-      const PlaceholderPage(
-        title: 'Forum',
-        icon: Icons.forum,
-      ),
+      const ForumEntryListPage(),
       const ProfileScreen(), // modul profil
     ];
 

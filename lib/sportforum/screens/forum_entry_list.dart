@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart' as pbp;
 import 'package:sportpedia_mobile/sportforum/screens/forum_detail.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forum_edit_form.dart';
+import 'package:sportpedia_mobile/sportforum/screens/forumlist_form.dart';
+import 'package:sportpedia_mobile/sportforum/widgets/forum_action_button.dart';
 
 const Map<String, String> _sportsCategory = {
   'All Sports': '',
@@ -87,12 +89,19 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
     final request = context.watch<pbp.CookieRequest>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Forum Entry List'),
+        title: const Text(
+          'Sport Forum',
+          style: TextStyle(color: Colors.white),
+          ),
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white, // back button & actions
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String?>(
+                  dropdownColor: const Color(0xFF1E3A8A),
                   value: _selectedSportSlug?.isEmpty == true
                       ? null
                       : _selectedSportSlug,
@@ -101,7 +110,7 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                       .map(
                         (entry) => DropdownMenuItem<String?>(
                           value: entry.value.isEmpty ? null : entry.value,
-                          child: Text(entry.key),
+                          child: Text(entry.key, style: TextStyle(color: Colors.white,)),
                         ),
                       )
                       .toList(),
@@ -157,7 +166,7 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                   child: Text(
                     widget.showOnlyMine
                         ? 'You have no Forums yet.'
-                        : 'No products available.',
+                        : 'No forum available.',
                     style: const TextStyle(fontSize: 16),
                   ),
                 );
@@ -225,6 +234,15 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
               );
             }
           }
+        },
+      ),
+      floatingActionButton: ForumActionButton(
+        tooltip: 'Create Post',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ForumFormPage()),
+          );
         },
       ),
     );
