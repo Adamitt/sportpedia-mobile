@@ -740,4 +740,3 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
     }
   }
 }
-
