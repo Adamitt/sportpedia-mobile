@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart' as pbp;
 import 'package:sportpedia_mobile/sportforum/models/forum_entry.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forum_entry_list.dart';
+import 'package:sportpedia_mobile/sportforum/services/forum_service.dart';
 
 class ForumEditPage extends StatefulWidget {
   const ForumEditPage({super.key, required this.forum, required this.request});
@@ -147,7 +148,6 @@ class _ForumEditPageState extends State<ForumEditPage> {
                       ),
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) return;
-                        final url = 'http://localhost:8000/forum/post/${widget.forum.id}/edit';
                         final payload = {
                           'sport': _sportSlug,
                           'title': _title,
@@ -155,7 +155,7 @@ class _ForumEditPageState extends State<ForumEditPage> {
                           'tags': _tags.join(', '),
                         };
                         try {
-                          await widget.request.post(url, payload);
+                          await ForumService.updatePost(widget.request, widget.forum.id, payload);
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Post updated successfully!')),

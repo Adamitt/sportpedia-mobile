@@ -9,6 +9,7 @@ import 'package:sportpedia_mobile/sportforum/screens/forum_detail.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forum_edit_form.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forumlist_form.dart';
 import 'package:sportpedia_mobile/sportforum/widgets/forum_action_button.dart';
+import 'package:sportpedia_mobile/sportforum/services/forum_service.dart';
 
 const Map<String, String> _sportsCategory = {
   'All Sports': '',
@@ -45,6 +46,7 @@ class ForumEntryListPage extends StatefulWidget {
 
 class ForumEntryListPageState extends State<ForumEntryListPage> {
   String? _selectedSportSlug;
+  final Map<String, bool> _liked = {};
 
   Future<List<ForumEntry>> fetchForum(pbp.CookieRequest request) async {
     // TODO: Replace the URL with your app's URL and don't forget to add a trailing slash (/)!
@@ -178,14 +180,20 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                 itemBuilder: (_, index) => ForumEntryCard(
                   forum: snapshot.data![index],
                   currentUsername: currentUsername,
+                  userHasLiked: _liked[snapshot.data![index].id] ?? false,
                   onLike: () async {
                     try {
-                      await request.post(
-                        'http://localhost:8000/forum/post/${snapshot.data![index].id}/like',
-                        {},
-                      );
+                      final item = snapshot.data![index] as ForumEntry;
+                      final bool currentlyLiked = _liked[item.id] ?? false;
+                      // Optimistically update UI count
+                      setState(() {
+                        _liked[item.id] = !currentlyLiked;
+                        item.likes += currentlyLiked ? -1 : 1;
+                      });
+                      await ForumService.toggleLike(request, item.id);
                     } finally {
-                      setState(() {});
+                      // After server responds, you could re-fetch if needed
+                      // setState(() {});
                     }
                   },
                   onEdit: () {
@@ -201,10 +209,7 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
                   },
                   onDelete: () async {
                     try {
-                      await request.post(
-                        'http://localhost:8000/forum/post/${snapshot.data![index].id}/delete',
-                        {},
-                      );
+                      await ForumService.deletePost(request, snapshot.data![index].id);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Post deleted')), 

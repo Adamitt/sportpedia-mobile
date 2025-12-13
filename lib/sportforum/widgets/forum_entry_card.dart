@@ -8,6 +8,7 @@ class ForumEntryCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final Future<void> Function()? onLike;
+  final bool userHasLiked;
 
   const ForumEntryCard({
     super.key,
@@ -17,6 +18,7 @@ class ForumEntryCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onLike,
+    this.userHasLiked = false,
   });
 
   @override
@@ -191,7 +193,7 @@ class ForumEntryCard extends StatelessWidget {
                 // BAGIAN KEDUA
                 // Content preview
                 Padding(
-                  padding: EdgeInsetsGeometry.only(left: 8.0),
+                  padding: EdgeInsets.only(left: 8.0),
                   child: Text(
                     forum.content.length > 100
                         ? '${forum.content.substring(0, 100)}...'
@@ -255,7 +257,8 @@ class ForumEntryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         _InteractiveMetric(
-                          icon: Icons.favorite_border,
+                          icon: userHasLiked ? Icons.favorite : Icons.favorite_border,
+                          iconColor: userHasLiked ? Colors.red : const Color(0xFF6B7280),
                           value: forum.likes,
                           onTap: () async {
                             if (onLike != null) {
@@ -361,11 +364,13 @@ class _InteractiveMetric extends StatelessWidget {
   final IconData icon;
   final int value;
   final Future<void> Function()? onTap;
+  final Color? iconColor;
 
   const _InteractiveMetric({
     required this.icon,
     required this.value,
     this.onTap,
+    this.iconColor,
     super.key,
   });
 
@@ -387,7 +392,7 @@ class _InteractiveMetric extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 15, color: fg),
+              Icon(icon, size: 15, color: iconColor ?? fg),
               const SizedBox(width: 4),
               Text(
                 value.toString(),

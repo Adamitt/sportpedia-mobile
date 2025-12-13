@@ -3,6 +3,7 @@ import 'package:sportpedia_mobile/sportforum/models/forum_entry.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart' as pbp;
 import 'package:sportpedia_mobile/sportforum/screens/forum_edit_form.dart';
+import 'package:sportpedia_mobile/sportforum/services/forum_service.dart';
 
 class ForumDetailPage extends StatefulWidget {
   final ForumEntry forum;
@@ -15,6 +16,14 @@ class ForumDetailPage extends StatefulWidget {
 }
 
 class _ForumDetailPageState extends State<ForumDetailPage> {
+  final TextEditingController _replyController = TextEditingController();
+  bool _isPosting = false;
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
 
   String _formatDate(DateTime date) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -32,17 +41,47 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
   }
 
   Future<Map<String, dynamic>> _fetchDetail(pbp.CookieRequest request) async {
-    final url = 'http://localhost:8000/forum/post/json/${widget.forum.id}/';
-    final resp = await request.get(url);
-    return Map<String, dynamic>.from(resp);
+    return ForumService.fetchDetail(request, widget.forum.id);
   }
 
   Future<void> _toggleLike(pbp.CookieRequest request) async {
-    final url = 'http://localhost:8000/forum/post/${widget.forum.id}/like';
     try {
-      await request.post(url, {});
+      await ForumService.toggleLike(request, widget.forum.id);
     } finally {
       setState(() {});
+    }
+  }
+
+  Future<void> _postReply(pbp.CookieRequest request) async {
+    final String comment = _replyController.text.trim();
+    if (comment.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please write a reply first.')),
+      );
+      return;
+    }
+    setState(() {
+      _isPosting = true;
+    });
+    try {
+      // Expected Django endpoint to create a reply for a forum post
+      await ForumService.postReply(request, widget.forum.id, comment);
+      _replyController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reply posted.')),
+      );
+      // Refresh detail to include the new reply
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to post reply: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPosting = false;
+        });
+      }
     }
   }
 
@@ -86,10 +125,7 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                     break;
                   case 'delete':
                     try {
-                      await widget.request.post(
-                        'http://localhost:8000/forum/post/${widget.forum.id}/delete-flutter',
-                        {},
-                      );
+                      await ForumService.deletePost(widget.request, widget.forum.id);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Post deleted')),
@@ -146,19 +182,6 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (replies.length > 20)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                      margin: const EdgeInsets.only(bottom: 12.0),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: const Text(
-                        'Highlight',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                    ),
 
                   // Chips row – show sport, highlight and tags on top
                   Wrap(
@@ -329,6 +352,54 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
+
+                  // Reply input box
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Add Reply',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _replyController,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            hintText: 'Write your reply…',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed: _isPosting ? null : () => _postReply(request),
+                            icon: _isPosting
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.send),
+                            label: Text(_isPosting ? 'Posting…' : 'Post Reply'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E3A8A),
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   // Replies list: use Column and a constrained ListView to avoid layout assertions
                   if (replies.isEmpty)
