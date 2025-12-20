@@ -11,7 +11,7 @@ class ProfileService {
   // BASE URL CONFIGURATION
   // ============================================================
   // Untuk development:
-  //   - Android Emulator: http://10.0.2.2:8000
+  //   - Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
   //   - iOS Simulator: http://localhost:8000
   //   - Chrome/Web: http://localhost:8000
   //   - Device fisik: http://IP_KOMPUTER:8000
@@ -20,7 +20,7 @@ class ProfileService {
   // ============================================================
 
   // Untuk Chrome/Web: http://localhost:8000
-  // Untuk Android Emulator: http://10.0.2.2:8000
+  // Untuk Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
   // Untuk Production: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id
   static const String baseUrl = 'http://localhost:8000';
 

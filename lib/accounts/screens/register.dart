@@ -37,8 +37,9 @@ class _RegisterViewState extends State<RegisterView>
   late Animation<double> fadeAnim;
   late Animation<Offset> slideAnim;
 
-  String get baseUrl =>
-      kIsWeb ? "http://localhost:8000" : "http://10.0.2.2:8000";
+  String get baseUrl => kIsWeb
+      ? "http://localhost:8000"
+      : "https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/";
 
   @override
   void initState() {
