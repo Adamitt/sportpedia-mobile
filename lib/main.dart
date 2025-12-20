@@ -151,7 +151,7 @@ class _HomePageState extends State<HomePage> {
       const GearGuidePage(),
 
       // Tab 4: Forum (Modul orang lain - placeholder)
-      _ForumPlaceholderPage(),
+      const ForumEntryListPage(),
 
       // Tab 5: Profile (Dari Kode 2)
       const ProfileScreen(),

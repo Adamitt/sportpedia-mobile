@@ -56,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Gagal memuat data profil';
+        _errorMessage = 'Gagal memuat data';
         _isLoading = false;
       });
     }
@@ -95,13 +95,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirm == true) {
       final request = context.read<CookieRequest>();
       await request.logout('http://localhost:8000/accounts/api/logout/');
-      
+
       // For Flutter Web, manually clear session cookie
       if (kIsWeb) {
-        html.document.cookie = 'sessionid=; Path=/; SameSite=None; Secure=false; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        html.document.cookie =
+            'sessionid=; Path=/; SameSite=None; Secure=false; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
         print('[DEBUG] Logout - Cleared session cookie');
       }
-      
+
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }
@@ -178,11 +179,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-          ? _buildErrorWidget()
-          : RefreshIndicator(
-              onRefresh: _loadProfileData,
-              child: _buildProfileContent(),
-            ),
+              ? _buildErrorWidget()
+              : RefreshIndicator(
+                  onRefresh: _loadProfileData,
+                  child: _buildProfileContent(),
+                ),
     );
   }
 
@@ -260,8 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               child: ClipOval(
-                child:
-                    _profile?.profileImage != null &&
+                child: _profile?.profileImage != null &&
                         _profile!.profileImage!.isNotEmpty
                     ? Image.network(
                         _profile!.profileImage!,
