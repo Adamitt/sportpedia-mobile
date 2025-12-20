@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -92,14 +91,14 @@ class _RegisterViewState extends State<RegisterView>
       final url = "$baseUrl/accounts/api/register/";
       print("Request ke: $url"); // Debugging log
 
-      final response = await request.postJson(
+      final response = await request.post(
         url,
-        jsonEncode({
+        {
           "username": _username.text.trim(),
           "email": _email.text.trim(),
           "password1": _password.text,
           "password2": _confirm.text,
-        }),
+        },
       );
 
       setState(() => _loading = false);
@@ -139,7 +138,13 @@ class _RegisterViewState extends State<RegisterView>
     } catch (e) {
       setState(() => _loading = false);
       print("Exception: $e");
-      _snack("Terjadi kesalahan: $e", true);
+      
+      // Cek apakah error karena server mengembalikan HTML
+      if (e.toString().contains('DOCTYPE') || e.toString().contains('html')) {
+        _snack("Server error: Pastikan Django server sudah running dan endpoint benar.", true);
+      } else {
+        _snack("Terjadi kesalahan: $e", true);
+      }
     }
   }
 
