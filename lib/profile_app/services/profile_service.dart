@@ -5,24 +5,11 @@ import 'dart:convert';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/user_profile.dart';
 import '../models/activity_history.dart';
+import '../../config/api_config.dart';
 
 class ProfileService {
-  // ============================================================
-  // BASE URL CONFIGURATION
-  // ============================================================
-  // Untuk development:
-  //   - Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
-  //   - iOS Simulator: http://localhost:8000
-  //   - Chrome/Web: http://localhost:8000
-  //   - Device fisik: http://IP_KOMPUTER:8000
-  // Untuk production:
-  //   - https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id
-  // ============================================================
-
-  // Untuk Chrome/Web: http://localhost:8000
-  // Untuk Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
-  // Untuk Production: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id
-  static const String baseUrl = 'http://localhost:8000';
+  // Menggunakan ApiConfig.baseUrl untuk konsistensi
+  static const String baseUrl = ApiConfig.baseUrl;
 
   // ============================================================
   // PROFIL USER - READ

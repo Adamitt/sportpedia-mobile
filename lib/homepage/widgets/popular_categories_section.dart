@@ -68,12 +68,12 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
       // URL format: /sportlibrary/<sport_id>/
       final uri = Uri.parse(url);
       final segments = uri.pathSegments;
-      
+
       if (segments.length >= 2 && segments[0] == 'sportlibrary') {
         final idStr = segments[1];
         return int.tryParse(idStr);
       }
-      
+
       return null;
     } catch (e) {
       return null;
@@ -86,7 +86,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
       // URL format: /gearguide/details/<gear_id>/ atau /gearguide/<gear_id>/
       final uri = Uri.parse(url);
       final segments = uri.pathSegments;
-      
+
       if (segments.length >= 2 && segments[0] == 'gearguide') {
         if (segments[1] == 'details' && segments.length >= 3) {
           // Format: /gearguide/details/<gear_id>/
@@ -96,7 +96,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
           return segments[1];
         }
       }
-      
+
       return null;
     } catch (e) {
       return null;
@@ -107,24 +107,25 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
   Future<void> _navigateToSportDetail(int sportId) async {
     try {
       final request = context.read<CookieRequest>();
-      final baseUrl = 'http://localhost:8000';
-      
+      final baseUrl = 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id';
+
       // Fetch semua sports dan cari yang sesuai ID
-      final response = await request.get('$baseUrl/sportlibrary/api/show-sports-json/');
+      final response =
+          await request.get('$baseUrl/sportlibrary/api/show-sports-json/');
       List<Sport> sports = [];
       for (var d in response) {
         if (d != null) {
           sports.add(Sport.fromJson(d));
         }
       }
-      
+
       final sport = sports.firstWhere(
         (s) => s.id == sportId,
         orElse: () => throw Exception('Sport tidak ditemukan'),
       );
-      
+
       if (!mounted) return;
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -148,14 +149,14 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
     try {
       // Fetch semua gears dan cari yang sesuai ID
       final gears = await GearGuideService.fetchGears();
-      
+
       final gear = gears.firstWhere(
         (g) => g.id == gearId,
         orElse: () => throw Exception('Gear tidak ditemukan'),
       );
-      
+
       if (!mounted) return;
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -215,7 +216,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFFFFF0F0), 
+            const Color(0xFFFFF0F0),
             Colors.white,
           ],
         ),
@@ -225,7 +226,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
         horizontal: isDesktop ? 48 : 16,
       ),
       // Pilih layout berdasarkan ukuran layar
-      child: isDesktop 
+      child: isDesktop
           ? _buildDesktopLayout() // Layout Kiri-Kanan (Desktop)
           : _buildMobileLayout(), // Layout Atas-Bawah (Mobile)
     );
@@ -270,7 +271,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
                 padding: const EdgeInsets.only(top: 20.0),
                 child: Image.asset(
                   'assets/images/whatshot1.png',
-                  height: 220, 
+                  height: 220,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const SizedBox(),
                 ),
@@ -278,9 +279,9 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
             ],
           ),
         ),
-        
+
         // Jarak pemisah antara gambar dan grid kartu
-        const SizedBox(height: 24), 
+        const SizedBox(height: 24),
 
         // 2. GRID KARTU (Pasti di bawah gambar)
         _buildContentGrid(isMobile: true),
@@ -323,7 +324,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
             ],
           ),
         ),
-        
+
         // Bagian Kanan: Grid Kartu
         Expanded(
           flex: 7, // Porsi lebar 7/12
@@ -343,10 +344,11 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
     if (_isLoading) {
       return const SizedBox(
         height: 200,
-        child: Center(child: CircularProgressIndicator(color: Color(0xFF9B2C2C))),
+        child:
+            Center(child: CircularProgressIndicator(color: Color(0xFF9B2C2C))),
       );
     }
-    
+
     if (_items.isEmpty) {
       return Center(child: Text('Belum ada data'));
     }
@@ -354,16 +356,16 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
     // Menggunakan WRAP + Alignment Center
     // Ini yang bikin kalau ada 3 item, item terakhir otomatis di tengah bawah.
     return Wrap(
-      spacing: 16,      // Jarak horizontal antar kartu
-      runSpacing: 16,   // Jarak vertikal antar baris
-      alignment: WrapAlignment.center, // KUNCI: Membuat item ganjil jadi di tengah
+      spacing: 16, // Jarak horizontal antar kartu
+      runSpacing: 16, // Jarak vertikal antar baris
+      alignment:
+          WrapAlignment.center, // KUNCI: Membuat item ganjil jadi di tengah
       children: _items.map((item) {
         // Hitung lebar kartu
         // Mobile: (Lebar Layar / 2) - Margin -> Supaya muat 2 kolom
         // Desktop: Fixed width 220
-        final cardWidth = isMobile 
-            ? (MediaQuery.of(context).size.width / 2) - 24 
-            : 220.0;
+        final cardWidth =
+            isMobile ? (MediaQuery.of(context).size.width / 2) - 24 : 220.0;
 
         return SizedBox(
           width: cardWidth,
@@ -389,7 +391,8 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF9B2C2C).withOpacity(0.08), // Bayangan merah halus
+            color: const Color(0xFF9B2C2C)
+                .withOpacity(0.08), // Bayangan merah halus
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -403,7 +406,7 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
             // --- HEADER KARTU (Badge & Konten) ---
             if (isLibrary) ...[
               // Badge Library
-               _buildBadge(
+              _buildBadge(
                 text: 'TRENDING • LIBRARY',
                 bgColor: const Color(0xFFFFF0F0),
                 textColor: const Color(0xFF9B2C2C),
@@ -508,7 +511,10 @@ class _PopularCategoriesSectionState extends State<PopularCategoriesSection> {
     );
   }
 
-  Widget _buildBadge({required String text, required Color bgColor, required Color textColor}) {
+  Widget _buildBadge(
+      {required String text,
+      required Color bgColor,
+      required Color textColor}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

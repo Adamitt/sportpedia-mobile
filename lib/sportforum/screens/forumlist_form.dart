@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forum_entry_list.dart';
+import 'package:sportpedia_mobile/config/api_config.dart';
 
 class ForumFormPage extends StatefulWidget {
     const ForumFormPage({super.key});
@@ -199,7 +200,7 @@ class ForumFormPageState extends State<ForumFormPage> {
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             final response = await request.postJson(
-                              "http://localhost:8000/forum/create-forum-flutter/",
+                              "${ApiConfig.baseUrl}/forum/create-forum-flutter/",
                               jsonEncode({
                                 "title": _title,
                                 "content": _content,

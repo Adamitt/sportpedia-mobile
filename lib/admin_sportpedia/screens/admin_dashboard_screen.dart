@@ -27,7 +27,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       // Untuk Chrome/Web: http://localhost:8000
       // Untuk Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
       final response = await request.get(
-        'http://localhost:8000/admin_sportpedia/api/dashboard/',
+        'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/admin_sportpedia/api/dashboard/',
       );
 
       if (mounted) {
@@ -66,37 +66,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-          ? _buildErrorWidget()
-          : RefreshIndicator(
-              onRefresh: _loadDashboardData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    _buildHeader(),
-                    const SizedBox(height: 24),
+              ? _buildErrorWidget()
+              : RefreshIndicator(
+                  onRefresh: _loadDashboardData,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        _buildHeader(),
+                        const SizedBox(height: 24),
 
-                    // Statistics Cards
-                    _buildStatisticsSection(),
-                    const SizedBox(height: 24),
+                        // Statistics Cards
+                        _buildStatisticsSection(),
+                        const SizedBox(height: 24),
 
-                    // Quick Actions
-                    _buildQuickActionsSection(),
-                    const SizedBox(height: 24),
+                        // Quick Actions
+                        _buildQuickActionsSection(),
+                        const SizedBox(height: 24),
 
-                    // System Info
-                    _buildSystemInfoSection(),
-                    const SizedBox(height: 24),
+                        // System Info
+                        _buildSystemInfoSection(),
+                        const SizedBox(height: 24),
 
-                    // Recent Activities
-                    _buildRecentActivitiesSection(),
-                  ],
+                        // Recent Activities
+                        _buildRecentActivitiesSection(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
     );
   }
 
@@ -721,4 +721,3 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 }
-

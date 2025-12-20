@@ -10,6 +10,7 @@ import 'package:sportpedia_mobile/sportforum/screens/forum_edit_form.dart';
 import 'package:sportpedia_mobile/sportforum/screens/forumlist_form.dart';
 import 'package:sportpedia_mobile/sportforum/widgets/forum_action_button.dart';
 import 'package:sportpedia_mobile/sportforum/services/forum_service.dart';
+import 'package:sportpedia_mobile/config/api_config.dart';
 
 const Map<String, String> _sportsCategory = {
   'All Sports': '',
@@ -49,11 +50,8 @@ class ForumEntryListPageState extends State<ForumEntryListPage> {
   final Map<String, bool> _liked = {};
 
   Future<List<ForumEntry>> fetchForum(pbp.CookieRequest request) async {
-    // TODO: Replace the URL with your app's URL and don't forget to add a trailing slash (/)!
-    // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
-    // If you using chrome,  use URL http://localhost:8000
-    
-    final response = await request.get('http://localhost:8000/forum/json/');
+    // Menggunakan ApiConfig.baseUrl untuk konsistensi
+    final response = await request.get('${ApiConfig.baseUrl}/forum/json/');
     
     // Decode response to json format
     var data = response;
