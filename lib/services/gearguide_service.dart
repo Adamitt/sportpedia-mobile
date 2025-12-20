@@ -8,7 +8,7 @@ import 'package:sportpedia_mobile/models/gear_list.dart';
 class GearGuideService {
   // ganti host kalau kamu jalanin server di alamat lain
   static String get baseUrl =>
-      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+      kIsWeb ? 'http://localhost:8000' : 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/';
 
   /// Ambil list gear (GET /gearguide/json/)
   static Future<List<Datum>> fetchGears() async {

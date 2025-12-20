@@ -25,7 +25,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     try {
       // Untuk Chrome/Web: http://localhost:8000
-      // Untuk Android Emulator: http://10.0.2.2:8000
+      // Untuk Android Emulator: https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/
       final response = await request.get(
         'http://localhost:8000/admin_sportpedia/api/dashboard/',
       );

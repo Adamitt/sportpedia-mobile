@@ -8,11 +8,11 @@ class VideoService {
   /// Base URL server Django kamu.
   ///
   /// PENTING:
-  /// 1. Jika running di Android Emulator, gunakan 'http://10.0.2.2:8000'
+  /// 1. Jika running di Android Emulator, gunakan 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/'
   /// 2. Jika build APK Release (untuk HP fisik), GANTI ini dengan URL deployment PBP kamu
   ///    (contoh: 'https://nama-proyek-kamu.pbp.cs.ui.ac.id')
   static String get baseUrl {
-    return 'http://10.0.2.2:8000';
+    return 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/';
   }
 
   /// GET /videos/api/ (dengan optional filter)
