@@ -4,6 +4,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/sport.dart';
 import 'sport_form.dart';
+import '../../config/api_config.dart';
 
 class SportDetailPage extends StatefulWidget {
   final Sport sport;
@@ -16,7 +17,7 @@ class SportDetailPage extends StatefulWidget {
 }
 
 class _SportDetailPageState extends State<SportDetailPage> with TickerProviderStateMixin {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = ApiConfig.baseUrl;
   late AnimationController _contentController;
   late AnimationController _fabController;
   late Animation<double> _fadeAnimation;

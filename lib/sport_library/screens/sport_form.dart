@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/sport.dart';
+import '../../config/api_config.dart';
 
 class SportFormPage extends StatefulWidget {
   final Sport? sport;
@@ -14,7 +15,7 @@ class SportFormPage extends StatefulWidget {
 
 class _SportFormPageState extends State<SportFormPage> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   String _name = "";
   String? _category;

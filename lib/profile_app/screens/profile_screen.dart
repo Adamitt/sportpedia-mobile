@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirm == true) {
       final request = context.read<CookieRequest>();
-      await request.logout('http://localhost:8000/accounts/api/logout/');
+      await request.logout('https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/accounts/api/logout/');
 
       // For Flutter Web, manually clear session cookie
       clearSessionCookie();

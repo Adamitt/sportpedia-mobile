@@ -1,14 +1,13 @@
 // lib/services/gearguide_service.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:sportpedia_mobile/models/gear_list.dart';
+import 'package:sportpedia_mobile/config/api_config.dart';
 
 class GearGuideService {
-  // ganti host kalau kamu jalanin server di alamat lain
-  static String get baseUrl =>
-      kIsWeb ? 'http://localhost:8000' : 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/';
+  // Menggunakan ApiConfig.baseUrl untuk konsistensi
+  static String get baseUrl => ApiConfig.baseUrl;
 
   /// Ambil list gear (GET /gearguide/json/)
   static Future<List<Datum>> fetchGears() async {

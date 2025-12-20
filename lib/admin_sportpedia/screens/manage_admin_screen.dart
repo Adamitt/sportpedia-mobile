@@ -26,7 +26,7 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
 
     try {
       final response = await request.get(
-        'http://localhost:8000/admin_sportpedia/api/admins/',
+        'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/api/admins/',
       );
 
       if (mounted) {

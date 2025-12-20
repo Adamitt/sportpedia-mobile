@@ -6,6 +6,7 @@ import '../models/sport.dart';
 import 'sport_detail.dart';
 import 'sport_form.dart';
 import 'saved_sports_page.dart';
+import '../../config/api_config.dart';
 
 class SportListPage extends StatefulWidget {
   final bool isAdmin;
@@ -16,7 +17,7 @@ class SportListPage extends StatefulWidget {
 }
 
 class _SportListPageState extends State<SportListPage> with TickerProviderStateMixin {
-  final String baseUrl = 'http://localhost:8000';
+  final String baseUrl = ApiConfig.baseUrl;
   String selectedCategory = 'All';
   String selectedDifficulty = 'All';
   late AnimationController _fabController;

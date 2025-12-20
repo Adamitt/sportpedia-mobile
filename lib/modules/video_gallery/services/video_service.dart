@@ -12,7 +12,7 @@ class VideoService {
   /// 2. Jika build APK Release (untuk HP fisik), GANTI ini dengan URL deployment PBP kamu
   ///    (contoh: 'https://nama-proyek-kamu.pbp.cs.ui.ac.id')
   static String get baseUrl {
-    return 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/';
+    return 'https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id';
   }
 
   /// GET /videos/api/ (dengan optional filter)

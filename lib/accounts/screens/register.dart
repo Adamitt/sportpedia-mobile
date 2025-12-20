@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'login.dart';
 import '../../config/api_config.dart';
 
@@ -80,16 +80,21 @@ class _RegisterViewState extends State<RegisterView>
   // ===============================
   // SUBMIT HANDLER
   // ===============================
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
 
     try {
-      final res = await http.post(
-        Uri.parse("$baseUrl/accounts/api/register/"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
+      // Gunakan CookieRequest dari provider untuk konsistensi dengan Flutter Web
+      final request = context.read<CookieRequest>();
+      final url = "$baseUrl/accounts/api/register/";
+      print("Request ke: $url"); // Debugging log
+
+      final response = await request.postJson(
+        url,
+        jsonEncode({
           "username": _username.text.trim(),
           "email": _email.text.trim(),
           "password1": _password.text,
@@ -97,21 +102,44 @@ class _RegisterViewState extends State<RegisterView>
         }),
       );
 
-      final data = jsonDecode(res.body);
-
       setState(() => _loading = false);
 
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        _snack("Registrasi berhasil!", false);
+      // --- LOGIKA MENANGANI RESPON SERVER ---
+      print("Response: $response");
+
+      // Cek response dari server
+      if (response['status'] == true || response['status'] == 'success') {
+        _snack("Registrasi berhasil! Silakan login.", false);
+
         await Future.delayed(const Duration(milliseconds: 800));
         if (!mounted) return;
         Navigator.pushReplacement(context, FadeRoute(const LoginView()));
       } else {
-        _snack(data["message"] ?? "Registrasi gagal.", true);
+        // Handle error dari server
+        String errorMessage = "Registrasi gagal.";
+
+        if (response['message'] != null) {
+          errorMessage = response['message'];
+        } else if (response['username'] != null) {
+          final usernameError = response['username'];
+          errorMessage = "Username: ${usernameError is List ? usernameError[0] : usernameError}";
+        } else if (response['email'] != null) {
+          final emailError = response['email'];
+          errorMessage = "Email: ${emailError is List ? emailError[0] : emailError}";
+        } else if (response['password1'] != null) {
+          final passError = response['password1'];
+          errorMessage = "Password: ${passError is List ? passError[0] : passError}";
+        } else if (response['non_field_errors'] != null) {
+          final error = response['non_field_errors'];
+          errorMessage = error is List ? error[0] : error;
+        }
+
+        _snack(errorMessage, true);
       }
-    } catch (_) {
+    } catch (e) {
       setState(() => _loading = false);
-      _snack("Tidak dapat terhubung ke server.", true);
+      print("Exception: $e");
+      _snack("Terjadi kesalahan: $e", true);
     }
   }
 
