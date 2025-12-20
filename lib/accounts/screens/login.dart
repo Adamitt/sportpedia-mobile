@@ -9,6 +9,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'register.dart';
+import '../../config/api_config.dart';
 
 // ===============================
 //  COLOR PALETTE
@@ -37,9 +38,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
   late Animation<double> fadeAnim;
   late Animation<Offset> slideAnim;
 
-  final String baseUrl = kIsWeb
-      ? "http://localhost:8000"
-      : "https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id";
+  static const String baseUrl = ApiConfig.baseUrl;
 
   @override
   void initState() {

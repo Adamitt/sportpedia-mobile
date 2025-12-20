@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'login.dart';
+import '../../config/api_config.dart';
 
 // ===============================
 // COLOR PALETTE
@@ -37,9 +38,7 @@ class _RegisterViewState extends State<RegisterView>
   late Animation<double> fadeAnim;
   late Animation<Offset> slideAnim;
 
-  String get baseUrl => kIsWeb
-      ? "http://localhost:8000"
-      : "https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id";
+  static const String baseUrl = ApiConfig.baseUrl;
 
   @override
   void initState() {
