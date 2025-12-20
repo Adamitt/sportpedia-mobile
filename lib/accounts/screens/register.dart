@@ -39,7 +39,7 @@ class _RegisterViewState extends State<RegisterView>
 
   String get baseUrl => kIsWeb
       ? "http://localhost:8000"
-      : "https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id/";
+      : "https://ainur-fadhil-sportpedia.pbp.cs.ui.ac.id";
 
   @override
   void initState() {
