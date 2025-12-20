@@ -7,9 +7,7 @@ import '../models/activity_history.dart';
 import '../services/profile_service.dart';
 import 'activity_history_screen.dart';
 import 'account_settings_screen.dart';
-
-// Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
+import '../../utils/web_cookie.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -97,11 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await request.logout('http://localhost:8000/accounts/api/logout/');
 
       // For Flutter Web, manually clear session cookie
-      if (kIsWeb) {
-        html.document.cookie =
-            'sessionid=; Path=/; SameSite=None; Secure=false; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        print('[DEBUG] Logout - Cleared session cookie');
-      }
+      clearSessionCookie();
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/login');

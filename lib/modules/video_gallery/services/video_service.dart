@@ -18,9 +18,9 @@ class VideoService {
   /// Untuk Android Emulator, gunakan 10.0.2.2:8000
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8000';  // Use localhost for web to match Flutter Web origin
+      return 'http://localhost:8000'; // Use localhost for web to match Flutter Web origin
     }
-    return 'http://127.0.0.1:8000';  // Use 127.0.0.1 for mobile
+    return 'http://127.0.0.1:8000'; // Use 127.0.0.1 for mobile
   }
 
   /// GET /videos/api/ (dengan optional filter)
@@ -39,12 +39,13 @@ class VideoService {
     final uri = Uri.parse('$baseUrl/videos/api/').replace(
       queryParameters: {
         if (sportId != null) 'sport': sportId.toString(),
-        if (difficulty != null && difficulty.isNotEmpty) 'difficulty': difficulty,
+        if (difficulty != null && difficulty.isNotEmpty)
+          'difficulty': difficulty,
         if (search != null && search.isNotEmpty) 'search': search,
         if (sort != null && sort.isNotEmpty) 'sort': sort,
       },
     );
-    
+
     // Untuk GET request yang tidak perlu auth, pakai http.get() biasa
     // CookieRequest hanya untuk POST request yang perlu session
     try {
@@ -55,7 +56,8 @@ class VideoService {
             .map((json) => Video.fromJson(json as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('Gagal memuat daftar video (status ${response.statusCode})');
+        throw Exception(
+            'Gagal memuat daftar video (status ${response.statusCode})');
       }
     } catch (e) {
       // Jika error, coba dengan CookieRequest sebagai fallback (jika ada)
@@ -67,9 +69,11 @@ class VideoService {
                 .map((json) => Video.fromJson(json as Map<String, dynamic>))
                 .toList();
           } else if (response is Map<String, dynamic>) {
-            throw Exception('Gagal memuat daftar video: ${response['message'] ?? response['detail'] ?? 'Unknown error'}');
+            throw Exception(
+                'Gagal memuat daftar video: ${response['message'] ?? response['detail'] ?? 'Unknown error'}');
           } else {
-            final List<dynamic> data = jsonDecode(response.toString()) as List<dynamic>;
+            final List<dynamic> data =
+                jsonDecode(response.toString()) as List<dynamic>;
             return data
                 .map((json) => Video.fromJson(json as Map<String, dynamic>))
                 .toList();
@@ -84,16 +88,19 @@ class VideoService {
 
   /// GET /videos/api/{id}/
   /// [request] - CookieRequest untuk authenticated requests (optional, untuk GET tidak wajib)
-  static Future<Video> fetchVideoDetail(int id, {CookieRequest? request}) async {
+  static Future<Video> fetchVideoDetail(int id,
+      {CookieRequest? request}) async {
     final url = Uri.parse('$baseUrl/videos/api/$id/');
     // Untuk GET request yang tidak perlu auth, pakai http.get() biasa
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
         return Video.fromJson(data);
       } else {
-        throw Exception('Gagal memuat detail video (status ${response.statusCode})');
+        throw Exception(
+            'Gagal memuat detail video (status ${response.statusCode})');
       }
     } catch (e) {
       // Jika error, coba dengan CookieRequest sebagai fallback (jika ada)
@@ -101,12 +108,15 @@ class VideoService {
         try {
           final response = await request.get(url.toString());
           if (response is Map<String, dynamic>) {
-            if (response.containsKey('detail') || response.containsKey('error')) {
-              throw Exception('Gagal memuat detail video: ${response['detail'] ?? response['error'] ?? 'Unknown error'}');
+            if (response.containsKey('detail') ||
+                response.containsKey('error')) {
+              throw Exception(
+                  'Gagal memuat detail video: ${response['detail'] ?? response['error'] ?? 'Unknown error'}');
             }
             return Video.fromJson(response);
           } else {
-            final Map<String, dynamic> data = jsonDecode(response.toString()) as Map<String, dynamic>;
+            final Map<String, dynamic> data =
+                jsonDecode(response.toString()) as Map<String, dynamic>;
             return Video.fromJson(data);
           }
         } catch (e2) {
@@ -119,7 +129,8 @@ class VideoService {
 
   /// GET /videos/api/{id}/comments/ - ambil komentar video
   /// [request] - CookieRequest untuk authenticated requests (optional, untuk GET tidak wajib)
-  static Future<List<Comment>> fetchComments(int videoId, {CookieRequest? request}) async {
+  static Future<List<Comment>> fetchComments(int videoId,
+      {CookieRequest? request}) async {
     final url = Uri.parse('$baseUrl/videos/api/$videoId/comments/');
     // Untuk GET request yang tidak perlu auth, pakai http.get() biasa
     try {
@@ -132,7 +143,8 @@ class VideoService {
       } else if (response.statusCode == 404) {
         return [];
       } else {
-        throw Exception('Gagal memuat komentar (status ${response.statusCode})');
+        throw Exception(
+            'Gagal memuat komentar (status ${response.statusCode})');
       }
     } catch (e) {
       // Jika error, coba dengan CookieRequest sebagai fallback (jika ada)
@@ -144,12 +156,15 @@ class VideoService {
                 .map((json) => Comment.fromJson(json as Map<String, dynamic>))
                 .toList();
           } else if (response is Map<String, dynamic>) {
-            if (response.containsKey('detail') && response['detail'] == 'Not found') {
+            if (response.containsKey('detail') &&
+                response['detail'] == 'Not found') {
               return [];
             }
-            throw Exception('Gagal memuat komentar: ${response['message'] ?? response['detail'] ?? 'Unknown error'}');
+            throw Exception(
+                'Gagal memuat komentar: ${response['message'] ?? response['detail'] ?? 'Unknown error'}');
           } else {
-            final List<dynamic> data = jsonDecode(response.toString()) as List<dynamic>;
+            final List<dynamic> data =
+                jsonDecode(response.toString()) as List<dynamic>;
             return data
                 .map((json) => Comment.fromJson(json as Map<String, dynamic>))
                 .toList();
@@ -176,110 +191,129 @@ class VideoService {
     if (!request.loggedIn) {
       throw Exception('Anda harus login terlebih dahulu');
     }
-    
+
     final url = Uri.parse('$baseUrl/videos/api/$videoId/comment/');
-    
+
     try {
       print('[DEBUG] VideoService.submitComment - URL: $url');
-      print('[DEBUG] VideoService.submitComment - loggedIn: ${request.loggedIn}');
-      
+      print(
+          '[DEBUG] VideoService.submitComment - loggedIn: ${request.loggedIn}');
+
       // For Flutter Web, use XMLHttpRequest directly with withCredentials
       if (kIsWeb) {
-        print('[DEBUG] VideoService.submitComment - Using XMLHttpRequest for Flutter Web with credentials');
-        
+        print(
+            '[DEBUG] VideoService.submitComment - Using XMLHttpRequest for Flutter Web with credentials');
+
         try {
           // Use XMLHttpRequest directly to ensure cookies are sent
           final xhr = html.HttpRequest();
           final completer = Completer<Comment>();
-          
+
           xhr.open('POST', url.toString(), async: true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.withCredentials = true; // CRITICAL: This ensures cookies are sent
-          
+
           xhr.onLoad.listen((event) {
-            print('[DEBUG] VideoService.submitComment - XHR response status: ${xhr.status}');
+            print(
+                '[DEBUG] VideoService.submitComment - XHR response status: ${xhr.status}');
             if (xhr.status == 200 || xhr.status == 201) {
               try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+                final data =
+                    jsonDecode(xhr.responseText!) as Map<String, dynamic>;
                 completer.complete(Comment.fromJson(data));
               } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
+                completer
+                    .completeError(Exception('Gagal memparse response: $e'));
               }
             } else {
               try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception('Gagal menambah komentar: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
+                final errorData = jsonDecode(xhr.responseText ?? '{}')
+                    as Map<String, dynamic>;
+                completer.completeError(Exception(
+                    'Gagal menambah komentar: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
               } catch (e) {
-                completer.completeError(Exception('Gagal menambah komentar: HTTP ${xhr.status}'));
+                completer.completeError(
+                    Exception('Gagal menambah komentar: HTTP ${xhr.status}'));
               }
             }
           });
-          
+
           xhr.onError.listen((event) {
-            completer.completeError(Exception('Network error saat mengirim komentar'));
+            completer.completeError(
+                Exception('Network error saat mengirim komentar'));
           });
-          
+
           final requestBody = jsonEncode({
             'text': text,
             if (rating != null) 'rating': rating,
           });
-          
-          print('[DEBUG] VideoService.submitComment - Sending XHR request with withCredentials=true');
+
+          print(
+              '[DEBUG] VideoService.submitComment - Sending XHR request with withCredentials=true');
           xhr.send(requestBody);
-          
+
           return await completer.future;
         } catch (e) {
           print('[DEBUG] VideoService.submitComment - XHR call failed: $e');
           // Fall through to CookieRequest.post() as fallback
         }
       }
-      
-    final response = await request.post(
-      url.toString(),
-      jsonEncode({
-        'text': text,
-        if (rating != null) 'rating': rating,
-      }),
-    );
 
-      print('[DEBUG] VideoService.submitComment - Response type: ${response.runtimeType}');
+      final response = await request.post(
+        url.toString(),
+        jsonEncode({
+          'text': text,
+          if (rating != null) 'rating': rating,
+        }),
+      );
+
+      print(
+          '[DEBUG] VideoService.submitComment - Response type: ${response.runtimeType}');
       print('[DEBUG] VideoService.submitComment - Response: $response');
 
-    // CookieRequest.post() returns Map<String, dynamic>
-    if (response is Map<String, dynamic>) {
-      // Check for error
-      if (response.containsKey('error') || response.containsKey('detail')) {
-          final errorMsg = response['error'] ?? response['detail'] ?? 'Unknown error';
+      // CookieRequest.post() returns Map<String, dynamic>
+      if (response is Map<String, dynamic>) {
+        // Check for error
+        if (response.containsKey('error') || response.containsKey('detail')) {
+          final errorMsg =
+              response['error'] ?? response['detail'] ?? 'Unknown error';
           print('[DEBUG] VideoService.submitComment - Error: $errorMsg');
-          print('[DEBUG] VideoService.submitComment - Full error response: $response');
+          print(
+              '[DEBUG] VideoService.submitComment - Full error response: $response');
           throw Exception('Gagal menambah komentar: $errorMsg');
-      }
-      // Success response
-      return Comment.fromJson(response);
+        }
+        // Success response
+        return Comment.fromJson(response);
       } else if (response is String) {
-      // If it's a string, try to parse it
+        // If it's a string, try to parse it
         try {
-          final Map<String, dynamic> data = jsonDecode(response) as Map<String, dynamic>;
+          final Map<String, dynamic> data =
+              jsonDecode(response) as Map<String, dynamic>;
           if (data.containsKey('error') || data.containsKey('detail')) {
             final errorMsg = data['error'] ?? data['detail'] ?? 'Unknown error';
-            print('[DEBUG] VideoService.submitComment - Error (string): $errorMsg');
-            print('[DEBUG] VideoService.submitComment - Full error response: $data');
+            print(
+                '[DEBUG] VideoService.submitComment - Error (string): $errorMsg');
+            print(
+                '[DEBUG] VideoService.submitComment - Full error response: $data');
             throw Exception('Gagal menambah komentar: $errorMsg');
           }
-      return Comment.fromJson(data);
+          return Comment.fromJson(data);
         } catch (e) {
           print('[DEBUG] VideoService.submitComment - Parse error: $e');
-          throw Exception('Gagal menambah komentar: Response tidak valid - $response');
+          throw Exception(
+              'Gagal menambah komentar: Response tidak valid - $response');
         }
       } else {
         print('[DEBUG] VideoService.submitComment - Unknown response type');
-        throw Exception('Gagal menambah komentar: Response format tidak dikenali');
+        throw Exception(
+            'Gagal menambah komentar: Response format tidak dikenali');
       }
     } catch (e, stackTrace) {
       print('[DEBUG] VideoService.submitComment - Exception: $e');
       print('[DEBUG] VideoService.submitComment - StackTrace: $stackTrace');
       // Re-throw dengan pesan yang lebih jelas
-      if (e.toString().contains('login') || e.toString().contains('authenticated')) {
+      if (e.toString().contains('login') ||
+          e.toString().contains('authenticated')) {
         throw Exception('Anda harus login terlebih dahulu');
       }
       rethrow;
@@ -303,7 +337,8 @@ class VideoService {
     if (response is Map<String, dynamic>) {
       // Check for error
       if (response.containsKey('error') || response.containsKey('detail')) {
-        throw Exception('Gagal menambah rating: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
+        throw Exception(
+            'Gagal menambah rating: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
       }
       // Success - no need to return anything
       return;
@@ -317,59 +352,65 @@ class VideoService {
     required int commentId,
   }) async {
     final url = Uri.parse('$baseUrl/videos/comment/$commentId/helpful/');
-    
+
     try {
       // For Flutter Web, use XMLHttpRequest directly with withCredentials
       if (kIsWeb) {
         try {
           final xhr = html.HttpRequest();
           final completer = Completer<int>();
-          
+
           xhr.open('POST', url.toString(), async: true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.withCredentials = true;
-          
+
           xhr.onLoad.listen((event) {
             if (xhr.status == 200 || xhr.status == 201) {
               try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+                final data =
+                    jsonDecode(xhr.responseText!) as Map<String, dynamic>;
                 if (data['success'] == true) {
                   completer.complete(data['helpful_count'] as int);
                 } else {
-                  completer.completeError(Exception(data['error'] ?? 'Failed to mark as helpful'));
+                  completer.completeError(
+                      Exception(data['error'] ?? 'Failed to mark as helpful'));
                 }
               } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
+                completer
+                    .completeError(Exception('Gagal memparse response: $e'));
               }
             } else {
               try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
+                final errorData = jsonDecode(xhr.responseText ?? '{}')
+                    as Map<String, dynamic>;
+                completer.completeError(
+                    Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
               } catch (e) {
                 completer.completeError(Exception('HTTP ${xhr.status}'));
               }
             }
           });
-          
+
           xhr.onError.listen((event) {
             completer.completeError(Exception('Network error'));
           });
-          
+
           xhr.send('');
           return await completer.future;
         } catch (e) {
           // Fall through to CookieRequest.post() as fallback
         }
       }
-      
+
       final response = await request.post(
         url.toString(),
         '{}',
       );
-      
+
       if (response is Map<String, dynamic>) {
         if (response.containsKey('error') || response.containsKey('detail')) {
-          throw Exception(response['error'] ?? response['detail'] ?? 'Unknown error');
+          throw Exception(
+              response['error'] ?? response['detail'] ?? 'Unknown error');
         }
         if (response['success'] == true) {
           return response['helpful_count'] as int;
@@ -405,46 +446,50 @@ class VideoService {
     if (!request.loggedIn) {
       throw Exception('Anda harus login terlebih dahulu');
     }
-    
+
     final url = Uri.parse('$baseUrl/videos/api/comment/$commentId/reply/');
-    
+
     try {
       // For Flutter Web, use XMLHttpRequest directly with withCredentials
       if (kIsWeb) {
         try {
           final xhr = html.HttpRequest();
           final completer = Completer<Comment>();
-          
+
           xhr.open('POST', url.toString(), async: true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.withCredentials = true;
-          
+
           xhr.onLoad.listen((event) {
             if (xhr.status == 200 || xhr.status == 201) {
               try {
-                final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+                final data =
+                    jsonDecode(xhr.responseText!) as Map<String, dynamic>;
                 if (data.containsKey('error')) {
                   completer.completeError(Exception(data['error'] as String));
                 } else {
                   completer.complete(Comment.fromJson(data));
                 }
               } catch (e) {
-                completer.completeError(Exception('Gagal memparse response: $e'));
+                completer
+                    .completeError(Exception('Gagal memparse response: $e'));
               }
             } else {
               try {
-                final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-                completer.completeError(Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
+                final errorData = jsonDecode(xhr.responseText ?? '{}')
+                    as Map<String, dynamic>;
+                completer.completeError(
+                    Exception(errorData['error'] ?? 'HTTP ${xhr.status}'));
               } catch (e) {
                 completer.completeError(Exception('HTTP ${xhr.status}'));
               }
             }
           });
-          
+
           xhr.onError.listen((event) {
             completer.completeError(Exception('Network error'));
           });
-          
+
           final requestBody = jsonEncode({'text': text});
           xhr.send(requestBody);
           return await completer.future;
@@ -452,15 +497,16 @@ class VideoService {
           // Fall through to CookieRequest.post() as fallback
         }
       }
-      
+
       final response = await request.post(
         url.toString(),
         jsonEncode({'text': text}),
       );
-      
+
       if (response is Map<String, dynamic>) {
         if (response.containsKey('error') || response.containsKey('detail')) {
-          throw Exception(response['error'] ?? response['detail'] ?? 'Unknown error');
+          throw Exception(
+              response['error'] ?? response['detail'] ?? 'Unknown error');
         }
         return Comment.fromJson(response);
       } else if (response is String) {
@@ -473,7 +519,8 @@ class VideoService {
         throw Exception('Response format tidak dikenali');
       }
     } catch (e) {
-      if (e.toString().contains('login') || e.toString().contains('authenticated')) {
+      if (e.toString().contains('login') ||
+          e.toString().contains('authenticated')) {
         throw Exception('Anda harus login terlebih dahulu');
       }
       rethrow;
@@ -489,15 +536,18 @@ class VideoService {
     try {
       final uri = Uri.parse('$baseUrl/videos/api/sports/');
       final response = await http.get(uri);
-      
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-        return data.map((sport) => {
-          'id': sport['id'] as int,
-          'name': sport['name'] as String,
-        }).toList();
+        return data
+            .map((sport) => {
+                  'id': sport['id'] as int,
+                  'name': sport['name'] as String,
+                })
+            .toList();
       } else {
-        throw Exception('Gagal memuat daftar olahraga (status ${response.statusCode})');
+        throw Exception(
+            'Gagal memuat daftar olahraga (status ${response.statusCode})');
       }
     } catch (e) {
       print('[DEBUG] VideoService.fetchSports - Error: $e');
@@ -536,39 +586,44 @@ class VideoService {
     }
 
     final url = Uri.parse('$baseUrl/videos/api/create/');
-    
+
     // For Flutter Web, use XMLHttpRequest with credentials
     if (kIsWeb) {
       try {
         final xhr = html.HttpRequest();
         final completer = Completer<Video>();
-        
+
         xhr.open('POST', url.toString(), async: true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.withCredentials = true;
-        
+
         xhr.onLoad.listen((event) {
           if (xhr.status == 201 || xhr.status == 200) {
             try {
-              final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+              final data =
+                  jsonDecode(xhr.responseText!) as Map<String, dynamic>;
               completer.complete(Video.fromJson(data));
             } catch (e) {
               completer.completeError(Exception('Gagal memparse response: $e'));
             }
           } else {
             try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              completer.completeError(Exception('Gagal membuat video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
+              final errorData =
+                  jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+              completer.completeError(Exception(
+                  'Gagal membuat video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
             } catch (e) {
-              completer.completeError(Exception('Gagal membuat video: HTTP ${xhr.status}'));
+              completer.completeError(
+                  Exception('Gagal membuat video: HTTP ${xhr.status}'));
             }
           }
         });
-        
+
         xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat membuat video'));
+          completer
+              .completeError(Exception('Network error saat membuat video'));
         });
-        
+
         final requestBody = jsonEncode({
           'title': title,
           'description': description,
@@ -580,14 +635,14 @@ class VideoService {
           if (duration != null) 'duration': duration,
           if (tags != null) 'tags': tags,
         });
-        
+
         xhr.send(requestBody);
         return await completer.future;
       } catch (e) {
         throw Exception('Gagal membuat video: $e');
       }
     }
-    
+
     // For mobile, use CookieRequest
     final response = await request.post(
       url.toString(),
@@ -606,7 +661,8 @@ class VideoService {
 
     if (response is Map<String, dynamic>) {
       if (response.containsKey('error') || response.containsKey('detail')) {
-        throw Exception('Gagal membuat video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
+        throw Exception(
+            'Gagal membuat video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
       }
       return Video.fromJson(response);
     } else {
@@ -630,40 +686,47 @@ class VideoService {
     List<String>? tags,
   }) async {
     print('[DEBUG] VideoService.updateVideo - loggedIn: ${request.loggedIn}');
-    print('[DEBUG] VideoService.updateVideo - URL: $baseUrl/videos/api/$videoId/update/');
-    
+    print(
+        '[DEBUG] VideoService.updateVideo - URL: $baseUrl/videos/api/$videoId/update/');
+
     if (!request.loggedIn) {
       throw Exception('Anda harus login terlebih dahulu');
     }
 
     final url = Uri.parse('$baseUrl/videos/api/$videoId/update/');
-    
+
     // For Flutter Web, use XMLHttpRequest with credentials
     if (kIsWeb) {
       try {
-        print('[DEBUG] VideoService.updateVideo - Using XMLHttpRequest for Flutter Web');
+        print(
+            '[DEBUG] VideoService.updateVideo - Using XMLHttpRequest for Flutter Web');
         // Check cookie
         final cookies = html.document.cookie ?? '';
         if (cookies.isNotEmpty) {
-          final cookiePreview = cookies.length > 100 ? cookies.substring(0, 100) : cookies;
-          print('[DEBUG] VideoService.updateVideo - Cookies: $cookiePreview...');
+          final cookiePreview =
+              cookies.length > 100 ? cookies.substring(0, 100) : cookies;
+          print(
+              '[DEBUG] VideoService.updateVideo - Cookies: $cookiePreview...');
         } else {
           print('[DEBUG] VideoService.updateVideo - No cookies found');
         }
-        
+
         final xhr = html.HttpRequest();
         final completer = Completer<Video>();
-        
+
         xhr.open('POST', url.toString(), async: true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.withCredentials = true;
-        
+
         xhr.onLoad.listen((event) {
-          print('[DEBUG] VideoService.updateVideo - HTTP status: ${xhr.status}');
+          print(
+              '[DEBUG] VideoService.updateVideo - HTTP status: ${xhr.status}');
           if (xhr.status == 200) {
             try {
-              final data = jsonDecode(xhr.responseText!) as Map<String, dynamic>;
-              print('[DEBUG] VideoService.updateVideo - Success response: ${data.keys}');
+              final data =
+                  jsonDecode(xhr.responseText!) as Map<String, dynamic>;
+              print(
+                  '[DEBUG] VideoService.updateVideo - Success response: ${data.keys}');
               completer.complete(Video.fromJson(data));
             } catch (e) {
               print('[DEBUG] VideoService.updateVideo - Parse error: $e');
@@ -671,20 +734,25 @@ class VideoService {
             }
           } else {
             try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              print('[DEBUG] VideoService.updateVideo - Error response: $errorData');
-              completer.completeError(Exception('Gagal mengupdate video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
+              final errorData =
+                  jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+              print(
+                  '[DEBUG] VideoService.updateVideo - Error response: $errorData');
+              completer.completeError(Exception(
+                  'Gagal mengupdate video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
             } catch (e) {
               print('[DEBUG] VideoService.updateVideo - Error parse error: $e');
-              completer.completeError(Exception('Gagal mengupdate video: HTTP ${xhr.status}'));
+              completer.completeError(
+                  Exception('Gagal mengupdate video: HTTP ${xhr.status}'));
             }
           }
         });
-        
+
         xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat mengupdate video'));
+          completer
+              .completeError(Exception('Network error saat mengupdate video'));
         });
-        
+
         final requestBody = jsonEncode({
           if (title != null) 'title': title,
           if (description != null) 'description': description,
@@ -696,14 +764,14 @@ class VideoService {
           if (duration != null) 'duration': duration,
           if (tags != null) 'tags': tags,
         });
-        
+
         xhr.send(requestBody);
         return await completer.future;
       } catch (e) {
         throw Exception('Gagal mengupdate video: $e');
       }
     }
-    
+
     // For mobile, use CookieRequest
     final response = await request.post(
       url.toString(),
@@ -722,7 +790,8 @@ class VideoService {
 
     if (response is Map<String, dynamic>) {
       if (response.containsKey('error') || response.containsKey('detail')) {
-        throw Exception('Gagal mengupdate video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
+        throw Exception(
+            'Gagal mengupdate video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
       }
       return Video.fromJson(response);
     } else {
@@ -741,41 +810,45 @@ class VideoService {
     }
 
     final url = Uri.parse('$baseUrl/videos/api/$videoId/delete/');
-    
+
     // For Flutter Web, use XMLHttpRequest with credentials
     if (kIsWeb) {
       try {
         final xhr = html.HttpRequest();
         final completer = Completer<void>();
-        
+
         xhr.open('POST', url.toString(), async: true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.withCredentials = true;
-        
+
         xhr.onLoad.listen((event) {
           if (xhr.status == 200) {
             completer.complete();
           } else {
             try {
-              final errorData = jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
-              completer.completeError(Exception('Gagal menghapus video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
+              final errorData =
+                  jsonDecode(xhr.responseText ?? '{}') as Map<String, dynamic>;
+              completer.completeError(Exception(
+                  'Gagal menghapus video: ${errorData['error'] ?? errorData['detail'] ?? 'Unknown error'}'));
             } catch (e) {
-              completer.completeError(Exception('Gagal menghapus video: HTTP ${xhr.status}'));
+              completer.completeError(
+                  Exception('Gagal menghapus video: HTTP ${xhr.status}'));
             }
           }
         });
-        
+
         xhr.onError.listen((event) {
-          completer.completeError(Exception('Network error saat menghapus video'));
+          completer
+              .completeError(Exception('Network error saat menghapus video'));
         });
-        
+
         xhr.send('{}');
         return await completer.future;
       } catch (e) {
         throw Exception('Gagal menghapus video: $e');
       }
     }
-    
+
     // For mobile, use CookieRequest
     final response = await request.post(
       url.toString(),
@@ -784,7 +857,8 @@ class VideoService {
 
     if (response is Map<String, dynamic>) {
       if (response.containsKey('error') || response.containsKey('detail')) {
-        throw Exception('Gagal menghapus video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
+        throw Exception(
+            'Gagal menghapus video: ${response['error'] ?? response['detail'] ?? 'Unknown error'}');
       }
       return;
     } else {
@@ -792,5 +866,3 @@ class VideoService {
     }
   }
 }
-
-
