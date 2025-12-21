@@ -1,8 +1,4 @@
-# sportpedia_mobile
-
-# Nama Aplikasi Kamu
-
-[![Build Status](https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c/status.svg?token=mavot0Gf0f6ZDEc3i1nGKw&branch=main)](https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c)
+# Sportpedia
 
 ## Download
 Download aplikasi versi terbaru: [Download APK](https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c/installable-artifacts/bdb1ae451bcfcd2a/public-install-page/9df0738f3b02f5c01119c2457ced18d0)
