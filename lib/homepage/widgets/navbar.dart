@@ -322,16 +322,15 @@ class _HomeNavBarState extends State<HomeNavBar> {
   }
 
   Widget _buildBottomNavLink(BuildContext context, String label, String route) {
-    // TODO: Check if current route matches to set active state
     return InkWell(
       onTap: () {
         if (route == '/gearguide/') {
           Navigator.pushNamed(context, '/gearguide');
         } else if (route == '/videos/') {
-          // Navigate ke Video Gallery
           Navigator.pushNamed(context, '/videos');
+        } else if (route == '/community/') {
+          Navigator.pushNamed(context, '/community');
         } else {
-          // Untuk route lain, show coming soon
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$label page coming soon'),
@@ -342,14 +341,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
       },
       child: Container(
         padding: const EdgeInsets.only(bottom: 4),
-        decoration: BoxDecoration(
-          border: const Border(
-            bottom: BorderSide(
-              color: Colors.transparent,
-              width: 4,
-            ),
-          ),
-        ),
         child: Text(
           label,
           style: TextStyle(
