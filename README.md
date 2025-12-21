@@ -2,7 +2,6 @@
 
 # Nama Aplikasi Kamu
 
-[![Build Status](https://app.bitrise.io/app/YOUR_APP_ID/status.svg?token=YOUR_TOKEN&branch=main)](https://app.bitrise.io/app/YOUR_APP_ID)
 [![Build Status](https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c/status.svg?token=mavot0Gf0f6ZDEc3i1nGKw&branch=main)](https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c)
 
 ## Download
