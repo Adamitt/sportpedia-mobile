@@ -31,228 +31,206 @@ class ForumEntryCard extends StatelessWidget {
     final String avatarInitial =
       displayAuthor.isNotEmpty ? displayAuthor[0].toUpperCase() : '?';
     final String formattedDate = _formatDate(forum.datePosted);
+    
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(16.0),
             side: BorderSide(color: Colors.grey.shade200),
           ),
-          elevation: 1.5,
-          shadowColor: Colors.black.withOpacity(0.05),
+          elevation: 0,
+          color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
-
-                // BAGIAN PERTAMA
-                // highlight, Sport, tags, and overflow actions
+                // HEADER: Avatar + Title + Meta
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: const Color(0xFFEFF6FF), // Blue 50
+                      child: Text(
+                        avatarInitial,
+                        style: const TextStyle(
+                          color: Color(0xFF1D4ED8), // Blue 700
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Wrap(
-                        direction: Axis.horizontal,
-                        spacing: 4,
-                        runSpacing: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
-                          // ================================
-                          // LEFT SIDE — avatar + owner + date
-                          // ================================
+                          Text(
+                            forum.title,
+                            style: const TextStyle(
+                              fontSize: 16.0,
+                              color: Color(0xFF111827), // Gray 900
+                              fontWeight: FontWeight.w600,
+                              height: 1.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
-                              CircleAvatar(
-                                radius: 12,
-                                backgroundColor: Colors.blue,
-                                child: Text(
-                                  avatarInitial,
-                                  style: const TextStyle(color: Colors.white),
+                              Text(
+                                ownerLabel,
+                                style: const TextStyle(
+                                  color: Color(0xFF4B5563), // Gray 600
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                
-                                children: [
-                                  Text(
-                                    forum.title,
-                                    style: const TextStyle(
-                                      fontSize: 16.0,
-                                      color: Color.fromRGBO(17, 24, 39, 1),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  Row(
-                                    children: [
-                                      Text(
-                                      ownerLabel,
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 2),
-
-                                      Text(
-                                        " · ",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 2),
-
-                                      Text(
-                                        formattedDate,
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 2),
-
-
-                                    ]
-                                  )
-                                  
-                                  
-                                ],
-                                
+                              const SizedBox(width: 4),
+                              const Text(
+                                "·",
+                                style: TextStyle(
+                                  color: Color(0xFF9CA3AF), // Gray 400
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                formattedDate,
+                                style: const TextStyle(
+                                  color: Color(0xFF6B7280), // Gray 500
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
-
                         ],
                       ),
                     ),
                     if (isOwner)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'edit':
-                              if (onEdit != null) {
-                                onEdit!();
-                              }
-                              break;
-                            case 'delete':
-                              if (onDelete != null) {
-                                onDelete!();
-                              }
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem<String>(
-                            value: 'edit',
-                            child: Row(
-                              children: const [
-                                Icon(Icons.edit, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Edit',
-                                  style: TextStyle(color: Colors.green),
-                                ),
-                              ],
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF)),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                if (onEdit != null) onEdit!();
+                                break;
+                              case 'delete':
+                                if (onDelete != null) onDelete!();
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Colors.green, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Edit', style: TextStyle(color: Colors.green)),
+                                ],
+                              ),
                             ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'delete',
-                            child: Row(
-                              children: const [
-                                Icon(Icons.delete, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Delete', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                   ],
                 ),
 
-
-                const SizedBox(height: 4),
-                const Divider(height: 2, thickness: 1, color: Color(0xFFE5E7EB)),
                 const SizedBox(height: 12),
 
-
-                // BAGIAN KEDUA
-                // Content preview
-                Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    forum.content.length > 100
-                        ? '${forum.content.substring(0, 100)}...'
-                        : forum.content,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 16, 16, 16),
-                      fontSize: 14.0,
-                      ),
+                // CONTENT
+                Text(
+                  forum.content,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF374151), // Gray 700
+                    fontSize: 14.0,
+                    height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 16),                
+                
+                const SizedBox(height: 16),
 
-
-                // BAGIAN KETIGA
-                // row, di dalemnya ada kolom buat owner sama tanggal, love, views, replies count
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // TAGS & METRICS
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tags Row
+                    Builder(
+                      builder: (context) {
+                        final bool hasHighlight = forum.repliesCount > 20;
+                        final List<String> tags = forum.tags;
 
-                    Flexible(
-                      child: Wrap(
-                        spacing: 2,
-                        runSpacing: 6,
-                        children: [
-                          if (forum.repliesCount > 20)
-                            const _ChipPill(
-                              label: 'Highlight',
-                              bg: Color(0xFFFFE69A),
-                              fg: Color(0xFF1F2937),
-                              bold: true,
-                            ),
-                          _ChipPill(
-                            label: forum.sport,
-                            bg: const Color(0xFF1E3A8A),
-                            fg: Colors.white,
+                        final List<Widget> chipRow = [];
+                        if (hasHighlight) {
+                          chipRow.add(const _ChipPill(
+                            label: 'Highlight',
+                            bg: Color(0xFFFEF3C7), // Amber 100
+                            fg: Color(0xFF92400E), // Amber 800
                             bold: true,
-                          ),
-                          ...forum.tags.map(
-                            (t) => const SizedBox(),
-                          ).toList(),
-                          ...forum.tags.map(
-                            (t) => _ChipPill(
-                              label: '#$t',
-                              bg: const Color(0xFFF3F4F6),
-                              fg: const Color(0xFF4B5563),
-                              border: const Color(0xFFE5E7EB),
-                            ),
-                          ),
-                        ],
-                      ),
+                          ));
+                        }
+                        // Sport Category
+                        chipRow.add(_ChipPill(
+                          label: forum.sport,
+                          bg: const Color(0xFFDBEAFE), // Blue 100
+                          fg: const Color(0xFF1E40AF), // Blue 800
+                          bold: true,
+                        ));
+
+                        // Tags
+                        int visCount = 0;
+                        if (tags.isNotEmpty) {
+                          chipRow.add(_ChipPill(
+                            label: '#${tags[0]}',
+                            bg: const Color(0xFFF3F4F6), // Gray 100
+                            fg: const Color(0xFF4B5563), // Gray 600
+                          ));
+                          visCount = 1;
+                        }
+                        final int remaining = tags.length - visCount;
+                        if (remaining > 0) {
+                          chipRow.add(_ChipPill(
+                            label: '+$remaining',
+                            bg: const Color(0xFFF3F4F6),
+                            fg: const Color(0xFF4B5563),
+                          ));
+                        }
+
+                        final List<Widget> children = <Widget>[];
+                        for (int i = 0; i < chipRow.length; i++) {
+                          if (i != 0) children.add(const SizedBox(width: 8));
+                          children.add(chipRow[i]);
+                        }
+                        return Row(children: children);
+                      },
                     ),
 
-                    
-                    
-                    // ================================
-                    // RIGHT SIDE — likes, views, replies
-                    // ================================
+                    const SizedBox(height: 16),
+
+                    // Metrics Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -266,15 +244,14 @@ class ForumEntryCard extends StatelessWidget {
                             }
                           },
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 20),
                         _Metric(icon: Icons.remove_red_eye_outlined, value: forum.views),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 20),
                         _Metric(icon: Icons.chat_bubble_outline, value: forum.repliesCount),
                       ],
                     ),
-
                   ],
-                ),   
+                ),
               ],
             ),
           ),
@@ -345,14 +322,14 @@ class _Metric extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 2),
-        Icon(icon, size: 15, color: const Color(0xFF6B7280)),
-        const SizedBox(width: 4),
+        Icon(icon, size: 18, color: const Color(0xFF9CA3AF)), // Gray 400
+        const SizedBox(width: 6),
         Text(
           value.toString(),
           style: const TextStyle(
-            color: Color(0xFF6B7280),
+            color: Color(0xFF6B7280), // Gray 500
             fontSize: 13,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -376,29 +353,26 @@ class _InteractiveMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color fg = Color(0xFF6B7280);
+    const Color defaultColor = Color(0xFF9CA3AF); // Gray 400
     return Material(
       color: Colors.transparent,
       shape: const StadiumBorder(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        customBorder: const StadiumBorder(),
-        hoverColor: Colors.black12,
-        splashColor: Colors.black12,
-        highlightColor: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 15, color: iconColor ?? fg),
-              const SizedBox(width: 4),
+              Icon(icon, size: 18, color: iconColor ?? defaultColor),
+              const SizedBox(width: 6),
               Text(
                 value.toString(),
                 style: const TextStyle(
-                  color: fg,
+                  color: Color(0xFF6B7280), // Gray 500
                   fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],

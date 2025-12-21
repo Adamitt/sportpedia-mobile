@@ -182,69 +182,23 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // Chips row – show sport, highlight and tags on top
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      // Sport chip
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E3A8A),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          widget.forum.sport.toUpperCase(),
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                      // Highlight if many replies
-                      if ((detail['replies'] as List?)?.length != null && ((detail['replies'] as List?)?.length ?? 0) > 20)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFE69A),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: const Text(
-                            'HIGHLIGHT',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1F2937)),
-                          ),
-                        ),
-                      // Tags
-                      ...((widget.forum.tags ?? const <String>[]) as List<String>).map(
-                        (t) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: const Color(0xFFE5E7EB)),
-                          ),
-                          child: Text(
-                            '#$t',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF4B5563)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Header: avatar + title + meta + like
+                  // HEADER: Avatar + Title + Meta
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.blue,
+                        radius: 20,
+                        backgroundColor: const Color(0xFFEFF6FF), // Blue 50
                         child: Text(
                           avatarInitial,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: Color(0xFF1D4ED8), // Blue 700
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,9 +206,10 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                             Text(
                               widget.forum.title,
                               style: const TextStyle(
-                                fontSize: 17.0,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                fontSize: 18.0,
+                                color: Color(0xFF111827), // Gray 900
+                                fontWeight: FontWeight.w600,
+                                height: 1.3,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -263,85 +218,180 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                                 Text(
                                   displayAuthor,
                                   style: const TextStyle(
-                                    color: Color(0xFF6B7280),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF4B5563), // Gray 600
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
-                                const Text('·', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  "·",
+                                  style: TextStyle(
+                                    color: Color(0xFF9CA3AF), // Gray 400
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
                                 Text(
                                   _formatDate(widget.forum.datePosted),
-                                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                                  style: const TextStyle(
+                                    color: Color(0xFF6B7280), // Gray 500
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Align like to author/date baseline with a small top padding
-                      
                     ],
                   ),
-                  
-                  const SizedBox(height: 4),
-                  const Divider(height: 2, thickness: 1, color: Color(0xFFE5E7EB)),
-                  const SizedBox(height: 12),
 
-                  // Full content
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      widget.forum.content,
-                      style: const TextStyle(fontSize: 16.0, height: 1.6),
-                      textAlign: TextAlign.justify,
+                  const SizedBox(height: 16),
+
+                  // CONTENT
+                  Text(
+                    widget.forum.content,
+                    style: const TextStyle(
+                      color: Color(0xFF374151), // Gray 700
+                      fontSize: 16.0,
+                      height: 1.6,
                     ),
+                    textAlign: TextAlign.justify,
                   ),
-                  
-                 
 
-                  Padding(
-                    padding: const EdgeInsets.only(top: 18),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          shape: const StadiumBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: () => _toggleLike(request),
-                            customBorder: const StadiumBorder(),
-                            hoverColor: Colors.black12,
-                            splashColor: Colors.black12,
-                            highlightColor: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    userHasLiked ? Icons.favorite : Icons.favorite_border,
-                                    size: 18,
-                                    color: userHasLiked ? Colors.red : Colors.grey,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '$likes',
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              ),
+                  const SizedBox(height: 20),
+
+                  // TAGS
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // Highlight if many replies
+                      if ((detail['replies'] as List?)?.length != null && ((detail['replies'] as List?)?.length ?? 0) > 20)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7), // Amber 100
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'Highlight',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF92400E), // Amber 800
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      // Sport chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDBEAFE), // Blue 100
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          widget.forum.sport,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1E40AF), // Blue 800
+                          ),
+                        ),
+                      ),
+                      // Tags
+                      ...((widget.forum.tags ?? const <String>[]) as List<String>).map(
+                        (t) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6), // Gray 100
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '#$t',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF4B5563), // Gray 600
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+                  const Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
+                  const SizedBox(height: 12),
+
+                  // METRICS
+                  Row(
+                    children: [
+                      // Like Button
+                      Material(
+                        color: Colors.transparent,
+                        shape: const StadiumBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => _toggleLike(request),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  userHasLiked ? Icons.favorite : Icons.favorite_border,
+                                  size: 20,
+                                  color: userHasLiked ? Colors.red : const Color(0xFF9CA3AF),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$likes',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6B7280),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Views
+                      Row(
+                        children: [
+                          const Icon(Icons.remove_red_eye_outlined, size: 20, color: Color(0xFF9CA3AF)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${widget.forum.views}',
+                            style: const TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      // Replies Count
+                      Row(
+                        children: [
+                          const Icon(Icons.chat_bubble_outline, size: 20, color: Color(0xFF9CA3AF)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${replies.length}',
+                            style: const TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 24),
@@ -349,51 +399,86 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                   // Replies section
                   const Text(
                     'Replies',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111827),
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
                   // Reply input box
                   Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
+                      color: const Color(0xFFF9FAFB), // Gray 50
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      border: Border.all(color: const Color(0xFFE5E7EB)), // Gray 200
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Add Reply',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          'Add a reply',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF374151),
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         TextField(
                           controller: _replyController,
                           maxLines: 3,
-                          decoration: const InputDecoration(
-                            hintText: 'Write your reply…',
-                            border: OutlineInputBorder(),
+                          style: const TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Write your thoughts...',
+                            hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.all(12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF1E3A8A)),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Align(
                           alignment: Alignment.centerRight,
-                          child: ElevatedButton.icon(
-                            onPressed: _isPosting ? null : () => _postReply(request),
-                            icon: _isPosting
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.send),
-                            label: Text(_isPosting ? 'Posting…' : 'Post Reply'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E3A8A),
-                              foregroundColor: Colors.white,
+                          child: SizedBox(
+                            height: 36,
+                            child: ElevatedButton.icon(
+                              onPressed: _isPosting ? null : () => _postReply(request),
+                              icon: _isPosting
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.send, size: 16),
+                              label: Text(
+                                _isPosting ? 'Posting...' : 'Post Reply',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E3A8A),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                              ),
                             ),
                           ),
                         ),
@@ -401,48 +486,88 @@ class _ForumDetailPageState extends State<ForumDetailPage> {
                     ),
                   ),
 
-                  // Replies list: use Column and a constrained ListView to avoid layout assertions
+                  // Replies list
                   if (replies.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('No replies yet.', style: TextStyle(color: Colors.grey)),
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        child: Text(
+                          'No replies yet. Be the first to share your thoughts!',
+                          style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                        ),
+                      ),
                     )
                   else
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: ListView.separated(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: replies.length,
-                        separatorBuilder: (_, __) => const Divider(height: 16),
-                        itemBuilder: (context, index) {
-                          final r = replies[index] as Map<String, dynamic>;
-                          final user = (r['user'] ?? 'Unknown').toString();
-                          final comment = (r['comment'] ?? '').toString();
-                          final date = _formatDateIso(r['date']?.toString());
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
+                    ListView.separated(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: replies.length,
+                      separatorBuilder: (_, __) => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(height: 1, color: Color(0xFFF3F4F6)),
+                      ),
+                      itemBuilder: (context, index) {
+                        final r = replies[index] as Map<String, dynamic>;
+                        final user = (r['user'] ?? 'Unknown').toString();
+                        final comment = (r['comment'] ?? '').toString();
+                        final date = _formatDateIso(r['date']?.toString());
+                        final userInitial = user.isNotEmpty ? user[0].toUpperCase() : '?';
+                        
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
                               radius: 16,
-                              backgroundColor: Colors.indigo,
+                              backgroundColor: const Color(0xFFF3F4F6),
                               child: Text(
-                                user.isNotEmpty ? user[0].toUpperCase() : '?',
-                                style: const TextStyle(color: Colors.white),
+                                userInitial,
+                                style: const TextStyle(
+                                  color: Color(0xFF4B5563),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                            title: Text(user, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (date.isNotEmpty)
-                                  Text(date, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                const SizedBox(height: 4),
-                                Text(comment),
-                              ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        user,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: Color(0xFF111827),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        date,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    comment,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF374151),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ],
+                        );
+                      },
                     ),
                   
                 ],
