@@ -311,3 +311,7 @@ Link Figma:
 https://www.figma.com/file/8EefBJOriHpUdaWKzYXzsz?locale=en&type=design
 ## Download
 Download aplikasi versi terbaru: [https://app.bitrise.io/app/a4c894c7-9c73-45b9-92ff-0c26d489877c/installable-artifacts/4920adb667a6abbd/public-install-page/47aac52ce17a856064f26d7eb42435d4]
+## Youtube
+Link Youtube:
+https://youtu.be/quAL_aKnEoM?si=Im7tKsNoL7y3HgDU
+
