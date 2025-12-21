@@ -40,16 +40,17 @@ class QuickNavigationSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                  
+
                   SizedBox(width: isMobile ? 8 : 12),
-                  
+
                   // [FIX] Gunakan Flexible agar teks bisa menyesuaikan lebar
                   Flexible(
                     child: Text(
                       'Explore Features',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: isMobile ? 24 : 32, // Font lebih kecil di mobile
+                        fontSize:
+                            isMobile ? 24 : 32, // Font lebih kecil di mobile
                         fontWeight: FontWeight.bold,
                         foreground: Paint()
                           ..shader = LinearGradient(
@@ -63,9 +64,9 @@ class QuickNavigationSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(width: isMobile ? 8 : 12),
-                  
+
                   if (screenWidth > 350)
                     Container(
                       width: isMobile ? 24 : 48,
@@ -107,7 +108,7 @@ class QuickNavigationSection extends StatelessWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 // [FIX] Aspect Ratio disesuaikan
-                childAspectRatio: 0.85, 
+                childAspectRatio: 0.85,
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
@@ -157,7 +158,7 @@ class QuickNavigationSection extends StatelessWidget {
         'image': 'assets/images/community.png',
         'color': Colors.purple,
         'badge': 'Active',
-        'route': '/forum',
+        'route': '/community',
       },
       {
         'title': 'Gear Guide',
@@ -204,9 +205,13 @@ class QuickNavigationSection extends StatelessWidget {
               Navigator.pushNamed(context, '/gearguide');
             } else if (title == 'Video Gallery') {
               Navigator.pushNamed(context, '/videos');
+            } else if (title == 'Community') {
+              Navigator.pushNamed(context, '/community');
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon'), duration: Duration(seconds: 1)),
+                const SnackBar(
+                    content: Text('Coming soon'),
+                    duration: Duration(seconds: 1)),
               );
             }
           },
@@ -220,7 +225,8 @@ class QuickNavigationSection extends StatelessWidget {
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: (item['color'] as Color).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -250,7 +256,8 @@ class QuickNavigationSection extends StatelessWidget {
                     item['image'] as String,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.category, size: 24, color: item['color'] as Color);
+                      return Icon(Icons.category,
+                          size: 24, color: item['color'] as Color);
                     },
                   ),
                 ),
@@ -260,7 +267,8 @@ class QuickNavigationSection extends StatelessWidget {
                 Text(
                   item['title'] as String,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

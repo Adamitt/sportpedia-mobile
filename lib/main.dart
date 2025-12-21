@@ -95,6 +95,7 @@ class MyApp extends StatelessWidget {
             case '/profile':
               return MaterialPageRoute(builder: (_) => const ProfileScreen());
             case '/forum':
+            case '/community': // Alias untuk forum
               return MaterialPageRoute(
                   builder: (_) => const ForumEntryListPage());
             case '/activity-history':
